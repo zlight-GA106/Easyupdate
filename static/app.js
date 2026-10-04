@@ -9,5 +9,20 @@ document.querySelectorAll('form').forEach(form => {
     }
     const status = form.querySelector('.upload-status');
     if (status) status.textContent = '正在上传…';
+    const progress = form.querySelector('[data-upload-progress]');
+    if (progress) progress.hidden = false;
+  });
+});
+
+window.addEventListener('pageshow', () => {
+  document.querySelectorAll('button.busy').forEach(button => {
+    button.classList.remove('busy');
+    button.removeAttribute('aria-busy');
+  });
+  document.querySelectorAll('[data-upload-progress]').forEach(progress => {
+    progress.hidden = true;
+  });
+  document.querySelectorAll('.upload-status').forEach(status => {
+    status.textContent = '';
   });
 });

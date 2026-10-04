@@ -178,7 +178,9 @@ scripts/smoke.py            临时 HTTP 验证
 
 ## 界面
 
-蓝色 Aero 玻璃边框与浅色实体内容区。参考 [Frutiger Aero Archive](https://frutigeraeroarchive.org/) 与 [zlight106.top](https://zlight106.top/)，背景与图标为项目自己的 SVG。
+使用本地 [7.css](https://khang-nd.github.io/7.css/) 0.21.1 的 Aero 窗口、按钮、表单、折叠区和状态栏；无需 CDN 或前端构建。原版样式、MIT 许可证和来源记录保存在 [static/vendor/7css/](static/vendor/7css/README.md)。
+
+蓝色 Aero 玻璃边框与浅色实体内容区。参考 [Frutiger Aero Archive](https://frutigeraeroarchive.org/) 与 [zlight106.top](https://zlight106.top/)，背景与导航图标为项目自己的 SVG。
 
 ![EasyUpdate 管理后台](docs/screenshots/overview.png)
 
