@@ -6,12 +6,14 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
+	File   string `yaml:"-"`
 	Server struct {
 		Listen    string `yaml:"listen"`
 		PublicURL string `yaml:"public_url"`
@@ -42,6 +44,10 @@ func Load(path string) (Config, error) {
 	d.KnownFields(true)
 	if err = d.Decode(&c); err != nil {
 		return c, fmt.Errorf("parse config: %w", err)
+	}
+	c.File, err = filepath.Abs(path)
+	if err != nil {
+		return c, err
 	}
 	c.Server.PublicURL = strings.TrimRight(c.Server.PublicURL, "/")
 	u, err := url.Parse(c.Server.PublicURL)

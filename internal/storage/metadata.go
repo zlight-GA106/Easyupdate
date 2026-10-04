@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -58,6 +59,9 @@ func ValidateAPK(path string) error {
 			r.Close()
 			if e != nil || len(data) < 8 || len(data) > 4<<20 {
 				return errors.New("invalid APK manifest")
+			}
+			if e = guardBinaryXML(data); e != nil {
+				return e
 			}
 		}
 	}
@@ -160,4 +164,89 @@ func readBinaryManifest(path string) (m Metadata, err error) {
 		return Metadata{PackageName: manifest.Package, VersionCode: code, Source: "manifest"}, errors.New("versionName needs manual input")
 	}
 	return Metadata{PackageName: manifest.Package, VersionName: name, VersionCode: code, Source: "manifest"}, nil
+}
+
+// Bound binary XML counts and string lengths before handing untrusted data to
+// the parser. ZIP size limits alone cannot bound allocations from corrupt counts.
+func guardBinaryXML(data []byte) error {
+	invalid := errors.New("invalid binary APK manifest")
+	if len(data) < 8 || binary.LittleEndian.Uint16(data) != 3 || int(binary.LittleEndian.Uint32(data[4:])) != len(data) {
+		return invalid
+	}
+	offset := int(binary.LittleEndian.Uint16(data[2:]))
+	if offset < 8 || offset > len(data) {
+		return invalid
+	}
+	var totalStrings int64
+	for offset < len(data) {
+		if len(data)-offset < 8 {
+			return invalid
+		}
+		chunk := data[offset:]
+		header := int(binary.LittleEndian.Uint16(chunk[2:]))
+		size := int(binary.LittleEndian.Uint32(chunk[4:]))
+		if header < 8 || size < header || size > len(chunk) {
+			return invalid
+		}
+		chunk = chunk[:size]
+		if binary.LittleEndian.Uint16(chunk) == 1 {
+			if header != 28 || size < 28 {
+				return invalid
+			}
+			count := int(binary.LittleEndian.Uint32(chunk[8:]))
+			styles := int(binary.LittleEndian.Uint32(chunk[12:]))
+			flags := binary.LittleEndian.Uint32(chunk[16:])
+			start := int(binary.LittleEndian.Uint32(chunk[20:]))
+			if count > 16384 || styles > 16384 || 28+4*(count+styles) > size || start < 28+4*(count+styles) || start > size {
+				return invalid
+			}
+			for i := 0; i < count; i++ {
+				pos := start + int(binary.LittleEndian.Uint32(chunk[28+4*i:]))
+				if pos < start || pos >= size {
+					return invalid
+				}
+				length := 0
+				if flags&0x100 != 0 {
+					for field := 0; field < 2; field++ {
+						if pos >= size {
+							return invalid
+						}
+						value := int(chunk[pos])
+						pos++
+						if value&0x80 != 0 {
+							if pos >= size {
+								return invalid
+							}
+							value = (value&0x7f)<<8 | int(chunk[pos])
+							pos++
+						}
+						length = value
+					}
+				} else {
+					if pos+2 > size {
+						return invalid
+					}
+					length = int(binary.LittleEndian.Uint16(chunk[pos:]))
+					pos += 2
+					if length&0x8000 != 0 {
+						if pos+2 > size {
+							return invalid
+						}
+						length = (length&0x7fff)<<16 | int(binary.LittleEndian.Uint16(chunk[pos:]))
+						pos += 2
+					}
+					length *= 2
+				}
+				if length > size-pos {
+					return invalid
+				}
+				totalStrings += int64(length)
+				if totalStrings > 8<<20 {
+					return invalid
+				}
+			}
+		}
+		offset += size
+	}
+	return nil
 }

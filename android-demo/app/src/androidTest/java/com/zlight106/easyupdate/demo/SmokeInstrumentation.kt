@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
 import android.os.Bundle
+import android.os.Build
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -23,7 +24,11 @@ class SmokeInstrumentation : Instrumentation() {
             await(activity, "Update available")
             runOnMainSync { activity.findViewById<Button>(R.id.download).performClick() }
             await(activity, "Verification Passed")
-            runOnMainSync { activity.findViewById<Button>(R.id.install).performClick() }
+            runOnMainSync {
+                require(Build.VERSION.SDK_INT < Build.VERSION_CODES.O || activity.packageManager.canRequestPackageInstalls()) { "Check / Download / SHA256 passed; grant installation permission before installer test" }
+                activity.findViewById<Button>(R.id.install).performClick()
+                require(activity.findViewById<TextView>(R.id.status).text.toString() != "Package installer unavailable") { "Package installer unavailable" }
+            }
             report.putString("stream", "PASS Check / Download / SHA256 / FileProvider installer intent\n")
             finish(Activity.RESULT_OK, report)
         } catch (error: Throwable) {

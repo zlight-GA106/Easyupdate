@@ -94,6 +94,7 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.admin("POST /admin/announcements/{id}/delete", s.deleteAnnouncement)
 	s.admin("POST /admin/apps/{id}/github", s.saveGitHub)
 	s.admin("POST /admin/apps/{id}/sync", s.syncGitHub)
+	s.mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) { apiError(w, 404, "not_found", "Endpoint not found") })
 	return s, nil
 }
 
@@ -108,7 +109,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if v := recover(); v != nil {
 			slog.Error("request panic", "method", r.Method, "route", r.Pattern, "error", fmt.Sprint(v))
-			http.Error(w, "Internal server error", 500)
+			if strings.HasPrefix(r.URL.Path, "/api/") {
+				apiError(w, 500, "internal_error", "Request failed")
+			} else {
+				http.Error(w, "Internal server error", 500)
+			}
 		}
 	}()
 	s.mux.ServeHTTP(w, r)
@@ -119,6 +124,10 @@ func (s *Server) admin(pattern string, fn http.HandlerFunc) {
 		sess, ok := s.auth.current(r)
 		if !ok || !sess.LoggedIn {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		if r.PathValue("id") != "" && idOf(r) <= 0 {
+			s.problem(w, r, 404, "内容不存在")
 			return
 		}
 		if r.Method == http.MethodPost {

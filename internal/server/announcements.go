@@ -61,6 +61,10 @@ func (s *Server) saveAnnouncement(w http.ResponseWriter, r *http.Request) {
 	redirect(w, r, "/admin/announcements")
 }
 func (s *Server) publishAnnouncement(w http.ResponseWriter, r *http.Request) {
+	if action := r.FormValue("action"); action != "publish" && action != "unpublish" {
+		s.problem(w, r, 400, "发布操作无效")
+		return
+	}
 	if _, err := s.db.Announcement(r.Context(), idOf(r)); err != nil {
 		s.dbError(w, r, err)
 		return

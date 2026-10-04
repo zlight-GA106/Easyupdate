@@ -87,10 +87,13 @@ func (s *Server) showConfirmation(w http.ResponseWriter, r *http.Request, a data
 	}
 	s.pending[token] = p
 	s.uploadMu.Unlock()
-	s.render(w, r, "upload-confirm.html", map[string]any{"Title": "确认版本", "Nav": "apps", "App": a, "Upload": p, "Token": token, "Metadata": p.File.Metadata})
+	tagMismatch := p.Tag != "" && p.File.Metadata.VersionName != "" && strings.TrimPrefix(p.Tag, "v") != p.File.Metadata.VersionName
+	s.render(w, r, "upload-confirm.html", map[string]any{"Title": "确认版本", "Nav": "apps", "App": a, "Upload": p, "Token": token, "Metadata": p.File.Metadata, "TagMismatch": tagMismatch})
 	slog.Info("APK uploaded", "app_id", a.ID, "size", p.File.Size, "metadata", p.File.Metadata.Source)
 }
 func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
+	s.uploadMu.Lock()
+	defer s.uploadMu.Unlock()
 	a, err := s.db.App(r.Context(), idOf(r))
 	if err != nil {
 		s.dbError(w, r, err)
@@ -98,8 +101,6 @@ func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
 	}
 	sess, _ := s.auth.current(r)
 	token := r.FormValue("upload_token")
-	s.uploadMu.Lock()
-	defer s.uploadMu.Unlock()
 	p, ok := s.pending[token]
 	if !ok || p.AppID != a.ID || p.Owner != sess.CSRF || time.Now().After(p.Expires) {
 		s.problem(w, r, 400, "上传已过期，请重新选择 APK")
@@ -180,6 +181,10 @@ func (s *Server) editRelease(w http.ResponseWriter, r *http.Request) {
 	redirect(w, r, fmt.Sprintf("/admin/releases/%d", idOf(r)))
 }
 func (s *Server) publishRelease(w http.ResponseWriter, r *http.Request) {
+	if action := r.FormValue("action"); action != "publish" && action != "unpublish" {
+		s.problem(w, r, 400, "发布操作无效")
+		return
+	}
 	rel, err := s.db.Release(r.Context(), idOf(r))
 	if err != nil {
 		s.dbError(w, r, err)

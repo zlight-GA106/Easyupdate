@@ -1,0 +1,19 @@
+# 本机验证
+
+日期：2026-10-04（Asia/Shanghai）。
+
+- Go 1.27.1 Windows amd64；项目最低版本 Go 1.26。
+- `go build ./...`、`go test ./...`、`go vet ./...`。
+- 实际 HTTP 验证：登录、CSRF、创建应用、真实 APK 上传、元数据、SHA256、草稿、发布、版本比较、流式下载、Range、取消发布、心跳 upsert、公告。
+- GitHub 实际导入：FossifyOrg/Clock 的公开 Release，APK 元数据 `1.6.0 / 10`，文件 9,110,265 字节；导入后保持草稿。
+- Android：JDK 17、SDK 35、Gradle 8.9；`assembleDebug`、`assembleDebugAndroidTest`、`lintDebug` 成功，生成版本 1 和版本 2 的 Demo APK。
+- 页面检查：桌面 1280 像素和手机 390 像素，页面无整体横向溢出；宽表格在自身容器内滚动。
+- Windows 和 Linux amd64 运行包已编译；正式服务在 `127.0.0.1:8080` 启动，默认配置只监听本机。
+
+## 限制
+
+本机没有连接 Android 真机。已尝试独立 API 19 AVD，当前 Android Emulator 37.2.12 在启动后持续显示 `offline`，无法进入系统，已停止该测试模拟器。系统安装确认和安装后心跳未能实际验证；未将模拟器失败当作安装验证通过。Android 项目和设备测试 APK 已保留，可在正常运行的设备上继续验证。
+
+本机未提供 Docker 运行环境，Docker 镜像构建未执行；已提供纯 Go 多阶段 Dockerfile。
+
+验证数据在临时目录或 `.verification/` 中，正式数据库不预置演示应用。

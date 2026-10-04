@@ -56,6 +56,8 @@ func (s *Server) appForm(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "app-form.html", map[string]any{"Title": title, "Nav": "apps", "App": a})
 }
 func (s *Server) saveApp(w http.ResponseWriter, r *http.Request) {
+	s.uploadMu.Lock()
+	defer s.uploadMu.Unlock()
 	a := database.App{ID: idOf(r), Name: strings.TrimSpace(r.FormValue("name")), PackageName: strings.TrimSpace(r.FormValue("package_name")), Description: strings.TrimSpace(r.FormValue("description"))}
 	if a.Name == "" || len(a.Name) > 128 || !validPackage(a.PackageName) || len(a.Description) > 4096 {
 		s.problem(w, r, 400, "请检查应用名称和包名")
@@ -93,6 +95,8 @@ func (s *Server) deleteAppPage(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "delete.html", map[string]any{"Title": "删除应用", "Nav": "apps", "ConfirmName": a.PackageName, "Back": fmt.Sprintf("/admin/apps/%d", a.ID)})
 }
 func (s *Server) deleteApp(w http.ResponseWriter, r *http.Request) {
+	s.uploadMu.Lock()
+	defer s.uploadMu.Unlock()
 	a, err := s.db.App(r.Context(), idOf(r))
 	if err != nil {
 		s.dbError(w, r, err)
@@ -109,5 +113,9 @@ func (s *Server) deleteApp(w http.ResponseWriter, r *http.Request) {
 	redirect(w, r, "/admin/apps")
 }
 func (s *Server) settings(w http.ResponseWriter, r *http.Request) {
-	s.render(w, r, "settings.html", map[string]any{"Title": "设置", "Nav": "settings", "PublicURL": s.cfg.Server.PublicURL, "MaxUploadMB": s.cfg.Storage.MaxUploadMB, "Listen": s.cfg.Server.Listen, "DatabasePath": s.cfg.Database.Path, "StoragePath": s.cfg.Storage.Path, "GitHubTokenConfigured": s.cfg.GitHub.Token != ""})
+	configPath := s.cfg.File
+	if configPath == "" {
+		configPath = "config.yaml"
+	}
+	s.render(w, r, "settings.html", map[string]any{"Title": "设置", "Nav": "settings", "PublicURL": s.cfg.Server.PublicURL, "MaxUploadMB": s.cfg.Storage.MaxUploadMB, "Listen": s.cfg.Server.Listen, "DatabasePath": s.cfg.Database.Path, "StoragePath": s.cfg.Storage.Path, "GitHubTokenConfigured": s.cfg.GitHub.Token != "", "ConfigPath": configPath})
 }

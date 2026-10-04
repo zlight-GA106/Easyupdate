@@ -60,7 +60,7 @@ func (s *Server) latest(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Server) download(w http.ResponseWriter, r *http.Request) {
 	code, err := strconv.ParseInt(r.PathValue("versionCode"), 10, 64)
-	if err != nil || code <= 0 {
+	if err != nil || code <= 0 || code > 2147483647 {
 		apiError(w, 400, "invalid_version", "Invalid version_code")
 		return
 	}

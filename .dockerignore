@@ -1,0 +1,11 @@
+.git
+.verification
+.tools
+config.yaml
+data
+dist
+easyupdate
+easyupdate.exe
+android-demo
+docs
+*.log

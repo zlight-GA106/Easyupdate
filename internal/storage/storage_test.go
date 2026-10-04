@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"os"
@@ -18,6 +19,20 @@ func fixture(t *testing.T) []byte {
 		t.Fatal(err)
 	}
 	return data
+}
+
+func TestMalformedManifestCountsAreBounded(t *testing.T) {
+	data := make([]byte, 36)
+	binary.LittleEndian.PutUint16(data, 3)
+	binary.LittleEndian.PutUint16(data[2:], 8)
+	binary.LittleEndian.PutUint32(data[4:], uint32(len(data)))
+	binary.LittleEndian.PutUint16(data[8:], 1)
+	binary.LittleEndian.PutUint16(data[10:], 28)
+	binary.LittleEndian.PutUint32(data[12:], 28)
+	binary.LittleEndian.PutUint32(data[16:], 0xffffffff)
+	if err := guardBinaryXML(data); err == nil {
+		t.Fatal("accepted allocation-sized manifest count")
+	}
 }
 func TestAPKMetadataAndSHA256(t *testing.T) {
 	data := fixture(t)
