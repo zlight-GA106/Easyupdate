@@ -214,6 +214,26 @@ button.busy { pointer-events: none; }
 a.button.danger { color: #9a3832; }
 .app-heading > div { min-width: 0; }
 .page-heading > .actions { max-width: 100%; }
+.records-table > thead > tr > th.record-actions { position: sticky; right: 0; z-index: 2; background: linear-gradient(#fff, #f1f5f8); box-shadow: -1px 0 #c9d9e5; }
+.records-table > tbody > tr > td.record-actions { position: sticky; right: 0; z-index: 1; background: white; box-shadow: -1px 0 #c9d9e5; }
+.records-table > tbody > tr:hover > td.record-actions { background: #f0f7fc; }
 @media(max-width:760px) {
   .app-heading h1 { overflow-wrap: anywhere; }
+  .records-table { display: block; min-width: 0; width: 100%; border: 0; white-space: normal; }
+  .records-table > thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .records-table > tbody { display: block; min-width: 0; padding: 12px; }
+  .records-table > tbody > tr { display: block; min-width: 0; margin-bottom: 12px; padding: 6px 0; border: 1px solid #c9d9e5; border-radius: 3px; background: white; }
+  .records-table > tbody > tr:last-child { margin-bottom: 0; }
+  .records-table > tbody > tr > td { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: start; gap: 12px; min-width: 0; width: 100%; height: auto; padding: 8px 12px; border: 0; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+  .records-table > tbody > tr > td::before { content: attr(data-label); color: #718799; font: 12px "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.6; }
+  .records-table > tbody > tr > td:not(:last-child) { border-right: 0; }
+  .records-table > tbody > tr > td[data-label="操作"] { display: block; margin-top: 4px; padding-top: 12px; border-top: 1px solid #e3ebf1; }
+  .records-table > tbody > tr > td[data-label="操作"]::before { display: block; margin-bottom: 8px; }
+  .records-table .app-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .records-table .badge { justify-self: start; }
+  .records-table .row-actions { flex-wrap: wrap; width: 100%; gap: 6px; }
+  .records-table .row-actions > .button, .records-table .row-actions > form { flex: 1 1 auto; min-width: 0; }
+  .records-table .row-actions .button { min-width: 0; min-height: 38px; padding: 6px 8px; }
+  .records-table .row-actions > form > .button { width: 100%; }
+  .records-table > thead > tr > th.record-actions, .records-table > tbody > tr > td.record-actions { position: static; right: auto; z-index: auto; box-shadow: none; }
 }

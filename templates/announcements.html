@@ -7,15 +7,15 @@
   <div class="panel-title">公告列表 <span>{{len .Items}}</span></div>
   {{if .Items}}
   <div class="table-wrap">
-    <table>
-      <thead><tr><th>标题</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+    <table class="records-table" role="table">
+      <thead><tr><th>标题</th><th>状态</th><th>创建时间</th><th class="record-actions">操作</th></tr></thead>
       <tbody>
         {{range .Items}}
         <tr>
-          <td><a href="/admin/announcements/{{.ID}}/edit">{{.Title}}</a></td>
-          <td><span class="badge {{if .Published}}published{{else}}draft{{end}}">{{if .Published}}已发布{{else}}草稿{{end}}</span></td>
-          <td>{{date .CreatedAt}}</td>
-          <td>
+          <td data-label="标题"><a href="/admin/announcements/{{.ID}}/edit">{{.Title}}</a></td>
+          <td data-label="状态"><span class="badge {{if .Published}}published{{else}}draft{{end}}">{{if .Published}}已发布{{else}}草稿{{end}}</span></td>
+          <td data-label="创建时间">{{date .CreatedAt}}</td>
+          <td data-label="操作" class="record-actions">
             <div class="row-actions">
               <a class="button" href="/admin/announcements/{{.ID}}/edit">编辑</a>
               <form method="post" action="/admin/announcements/{{.ID}}/publish">

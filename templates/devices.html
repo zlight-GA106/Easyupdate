@@ -16,18 +16,18 @@
   <div class="panel-title">设备记录 <span>第 {{.Page}} 页</span></div>
   {{if .Devices}}
   <div class="table-wrap">
-    <table>
-      <thead><tr><th>Device ID</th><th>应用</th><th>版本</th><th>版本号</th><th>首次记录</th><th>最近上报</th><th>操作</th></tr></thead>
+    <table class="records-table" role="table">
+      <thead><tr><th>Device ID</th><th>应用</th><th>版本</th><th>版本号</th><th>首次记录</th><th>最近上报</th><th class="record-actions">操作</th></tr></thead>
       <tbody>
         {{range .Devices}}
         <tr>
-          <td class="mono">{{.DeviceID}}</td>
-          <td><a href="/admin/apps/{{.AppID}}">{{.AppName}}</a></td>
-          <td>{{.VersionName}}</td>
-          <td class="mono">{{.VersionCode}}</td>
-          <td>{{date .FirstSeen}}</td>
-          <td>{{date .LastSeen}}</td>
-          <td><div class="row-actions"><a class="button" href="/admin/devices/{{.ID}}/edit">编辑</a><a class="button danger" href="/admin/devices/{{.ID}}/delete">删除</a></div></td>
+          <td data-label="Device ID" class="mono">{{.DeviceID}}</td>
+          <td data-label="应用"><a href="/admin/apps/{{.AppID}}">{{.AppName}}</a></td>
+          <td data-label="版本">{{.VersionName}}</td>
+          <td data-label="版本号" class="mono">{{.VersionCode}}</td>
+          <td data-label="首次记录">{{date .FirstSeen}}</td>
+          <td data-label="最近上报">{{date .LastSeen}}</td>
+          <td data-label="操作" class="record-actions"><div class="row-actions"><a class="button" href="/admin/devices/{{.ID}}/edit">编辑</a><a class="button danger" href="/admin/devices/{{.ID}}/delete">删除</a></div></td>
         </tr>
         {{end}}
       </tbody>

@@ -27,18 +27,18 @@
   <div class="panel-title">版本历史 <span>{{len .Releases}}</span></div>
   {{if .Releases}}
   <div class="table-wrap">
-    <table>
-      <thead><tr><th>版本</th><th>版本号</th><th>状态</th><th>强制更新</th><th>大小</th><th>创建时间</th><th>操作</th></tr></thead>
+    <table class="records-table" role="table">
+      <thead><tr><th>版本</th><th>版本号</th><th>状态</th><th>强制更新</th><th>大小</th><th>创建时间</th><th class="record-actions">操作</th></tr></thead>
       <tbody>
         {{range .Releases}}
         <tr>
-          <td><a href="/admin/releases/{{.ID}}">{{.VersionName}}</a></td>
-          <td class="mono">{{.VersionCode}}</td>
-          <td><span class="badge {{if .Published}}published{{else}}draft{{end}}">{{if .Published}}已发布{{else}}草稿{{end}}</span></td>
-          <td>{{if .Mandatory}}是{{else}}—{{end}}</td>
-          <td>{{size .APKSize}}</td>
-          <td>{{date .CreatedAt}}</td>
-          <td>
+          <td data-label="版本"><a href="/admin/releases/{{.ID}}">{{.VersionName}}</a></td>
+          <td data-label="版本号" class="mono">{{.VersionCode}}</td>
+          <td data-label="状态"><span class="badge {{if .Published}}published{{else}}draft{{end}}">{{if .Published}}已发布{{else}}草稿{{end}}</span></td>
+          <td data-label="强制更新">{{if .Mandatory}}是{{else}}—{{end}}</td>
+          <td data-label="大小">{{size .APKSize}}</td>
+          <td data-label="创建时间">{{date .CreatedAt}}</td>
+          <td data-label="操作" class="record-actions">
             <div class="row-actions">
               <a class="button" href="/admin/releases/{{.ID}}">查看</a>
               <a class="button" href="/admin/releases/{{.ID}}#edit">编辑</a>

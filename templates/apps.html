@@ -7,16 +7,16 @@
   <div class="panel-title">应用列表 <span>{{len .Apps}}</span></div>
   {{if .Apps}}
   <div class="table-wrap">
-    <table>
-      <thead><tr><th>应用</th><th>包名</th><th>最新版本</th><th>版本数</th><th>操作</th></tr></thead>
+    <table class="records-table" role="table">
+      <thead><tr><th>应用</th><th>包名</th><th>最新版本</th><th>版本数</th><th class="record-actions">操作</th></tr></thead>
       <tbody>
         {{range .Apps}}
         <tr>
-          <td><a class="app-name" href="/admin/apps/{{.ID}}"><span class="app-icon">{{initial .Name}}</span>{{.Name}}</a></td>
-          <td class="mono">{{.PackageName}}</td>
-          <td>{{if .LatestVersion}}{{.LatestVersion}}{{else}}—{{end}}</td>
-          <td>{{.ReleaseCount}}</td>
-          <td>
+          <td data-label="应用"><a class="app-name" href="/admin/apps/{{.ID}}"><span class="app-icon">{{initial .Name}}</span>{{.Name}}</a></td>
+          <td data-label="包名" class="mono">{{.PackageName}}</td>
+          <td data-label="最新版本">{{if .LatestVersion}}{{.LatestVersion}}{{else}}—{{end}}</td>
+          <td data-label="版本数">{{.ReleaseCount}}</td>
+          <td data-label="操作" class="record-actions">
             <div class="row-actions">
               <a class="button" href="/admin/apps/{{.ID}}">打开</a>
               <a class="button" href="/admin/apps/{{.ID}}/edit">编辑</a>
