@@ -8,6 +8,7 @@
 - GitHub 实际导入：FossifyOrg/Clock 的公开 Release，APK 元数据 `1.6.0 / 10`，文件 9,110,265 字节；导入后保持草稿。
 - Android：JDK 17、SDK 35、Gradle 8.9；`assembleDebug`、`assembleDebugAndroidTest`、`lintDebug` 成功，生成版本 1 和版本 2 的 Demo APK。
 - 页面检查：桌面 1280 像素和手机 390 像素，页面无整体横向溢出；宽表格在自身容器内滚动。
+- 说明页：登录保护、导航选中状态、8 个目录锚点、当前配置地址和上传上限已验证；API 心跳示例可展开，1280、390、319 像素布局无整体横向溢出。
 - Windows 和 Linux amd64 运行包已编译；正式服务在 `127.0.0.1:8080` 启动，默认配置只监听本机。
 
 ## 限制

@@ -1,0 +1,259 @@
+{{template "head" .}}
+<div class="page-heading"><h1>说明</h1><a class="button" href="/admin/settings">查看配置</a></div>
+<div class="help-layout">
+  <nav class="help-index" aria-label="说明目录">
+    <span class="help-index-title">目录</span>
+    <a href="#start">快速开始</a>
+    <a href="#config">服务器配置</a>
+    <a href="#releases">应用与版本</a>
+    <a href="#api">API</a>
+    <a href="#android">Android 接入</a>
+    <a href="#github">GitHub 导入</a>
+    <a href="#records">公告与设备</a>
+    <a href="#maintenance">备份与排错</a>
+  </nav>
+  <div class="help-sections">
+    <section class="panel help-section" id="start" aria-labelledby="start-title">
+      <h2 class="panel-title" id="start-title">快速开始</h2>
+      <div class="help-body">
+        <ol class="help-steps">
+          <li><a href="/admin/apps/new">新建应用</a>，填写名称和 APK 的 Android 包名。</li>
+          <li>进入应用，点击<strong>上传 APK</strong>，确认版本信息并创建草稿。</li>
+          <li>打开草稿，点击<strong>发布版本</strong>。客户端即可查询并下载。</li>
+        </ol>
+        <p>首次登录：账号 <code>admin</code>，密码 <code>admin</code>。在服务器配置文件中修改，重启后生效。</p>
+        <p class="help-note">真机接入前，先将公开地址改为手机可以访问的局域网地址或域名。</p>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="config" aria-labelledby="config-title">
+      <h2 class="panel-title" id="config-title">服务器配置</h2>
+      <div class="help-body">
+        <p>默认读取运行目录的 <code>config.yaml</code>；使用 <code>-config 文件路径</code> 指定其他文件。当前配置路径和数值见<a href="/admin/settings">设置</a>。</p>
+        <div class="table-wrap"><table class="help-table">
+          <thead><tr><th>字段</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><code>server.listen</code></td><td>监听地址。仅本机：<code>127.0.0.1:8080</code>；局域网或容器：<code>0.0.0.0:8080</code>。</td></tr>
+            <tr><td><code>server.public_url</code></td><td>客户端可访问的 HTTP / HTTPS 地址，用于生成下载链接。填写协议、主机及可选端口，不带路径、查询参数。</td></tr>
+            <tr><td><code>admin.username</code><br><code>admin.password</code></td><td>后台登录凭据。修改后重启；现有会话需要重新登录。密码为 1–72 字节。</td></tr>
+            <tr><td><code>database.path</code></td><td>SQLite 文件路径；数据库及父目录在启动时创建。</td></tr>
+            <tr><td><code>storage.path</code></td><td>APK 存储目录。相对路径以服务的运行目录为基准。</td></tr>
+            <tr><td><code>storage.max_upload_mb</code></td><td>单个 APK 的大小上限，允许 1–4096 MB；当前为 {{.MaxUploadMB}} MB。</td></tr>
+            <tr><td><code>github.token</code></td><td>可选 GitHub Token，仅用于 GitHub API 请求。</td></tr>
+          </tbody>
+        </table></div>
+        <details class="help-disclosure">
+          <summary>配置文件示例</summary>
+          <pre><code>server:
+  listen: "0.0.0.0:8080"
+  public_url: "http://192.168.1.100:8080"
+database:
+  path: "./data/easyupdate.db"
+storage:
+  path: "./data/apks"
+  max_upload_mb: 512
+admin:
+  username: "admin"
+  password: "admin"
+github:
+  token: ""</code></pre>
+          <p>将示例 IP 替换为服务器地址，保存后重启服务。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>启动、编译与 Docker</summary>
+          <p>Windows 直接运行已构建的程序：</p>
+          <pre><code>.\easyupdate.exe -config .\config.yaml</code></pre>
+          <p>从源码构建需 Go 1.26+，无需前端构建或 C 编译器。</p>
+          <pre><code># Windows / PowerShell
+Copy-Item config.example.yaml config.yaml
+go build -o easyupdate.exe .
+.\easyupdate.exe
+
+# Linux / macOS
+cp config.example.yaml config.yaml
+go build -o easyupdate .
+./easyupdate</code></pre>
+          <p>仅在首次配置时复制示例文件；已有配置可继续使用。模板和静态资源内嵌在程序中，修改源码后需重新编译。</p>
+          <p>Docker（Linux shell）：准备 <code>config.yaml</code>，监听地址设为 <code>0.0.0.0:8080</code>。</p>
+          <pre><code>mkdir -p data
+docker build -t easyupdate .
+docker run --name easyupdate -p 8080:8080 \
+  -v "$PWD/data:/app/data" \
+  -v "$PWD/config.yaml:/app/config.yaml:ro" \
+  easyupdate</code></pre>
+          <p>反向代理需允许 APK 上传大小及下载超时；HTTPS 部署时将公开地址设为 HTTPS，后台 Cookie 会启用 Secure 属性。</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="releases" aria-labelledby="releases-title">
+      <h2 class="panel-title" id="releases-title">应用与版本</h2>
+      <div class="help-body">
+        <ul>
+          <li><strong>包名</strong>必须与 APK 一致，例如 <code>com.zlight106.easyupdate.demo</code>。添加版本后不可修改；名称和简介仍可编辑。</li>
+          <li><strong>版本名称</strong>用于显示；<strong>版本号</strong>是整数 <code>versionCode</code>，范围为 1–2147483647。同一应用的版本号唯一，最新版按版本号排序。</li>
+          <li>上传后确认包名、版本和 SHA256。已解析的字段不可覆盖；未解析的字段可以手动填写。确认页在 30 分钟后或重启后失效。</li>
+          <li><strong>草稿</strong>不会进入公开 API。发布后才可查询和下载；取消发布后，API 会选择剩余已发布版本中版本号最大的版本。</li>
+          <li>版本详情可以修改版本说明和强制更新标记。替换 APK 应构建并上传新的版本号。</li>
+          <li>强制更新标记通过 API 交给客户端处理；Demo 会隐藏 <code>Later</code> 按钮，安装仍由系统确认。</li>
+          <li>删除版本需输入版本号，会删除记录及 APK。删除应用需输入包名，并先删除其全部版本。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="api" aria-labelledby="api-title">
+      <h2 class="panel-title" id="api-title">API</h2>
+      <div class="help-body">
+        <p>公开接口无需后台登录。当前公开地址：<code>{{.PublicURL}}</code>。下例使用 Demo 包名和示例版本，需先创建应用并发布相应 APK。</p>
+        <details class="help-disclosure" open>
+          <summary>GET · 检查最新版本</summary>
+          <pre><code>{{.PublicURL}}/api/v1/apps/com.zlight106.easyupdate.demo/latest?version_code=1</code></pre>
+          <p><code>version_code</code> 为客户端当前版本号，省略时按 0 处理。有更新时返回：</p>
+          <pre><code>{
+  "package_name": "com.zlight106.easyupdate.demo",
+  "update_available": true,
+  "version_name": "1.1.0",
+  "version_code": 2,
+  "mandatory": false,
+  "published_at": "2026-10-04T06:00:00Z",
+  "release_notes": "修复已知问题",
+  "download_url": "{{.PublicURL}}/api/v1/apps/com.zlight106.easyupdate.demo/releases/2/download",
+  "size": 1500000,
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+}</code></pre>
+          <p><code>size</code> 的单位为字节；<code>sha256</code> 是文件实际 SHA256 的 64 位十六进制值，上例仅为占位。客户端版本大于或等于最新版本时：</p>
+          <pre><code>{
+  "package_name": "com.zlight106.easyupdate.demo",
+  "update_available": false,
+  "latest_version_name": "1.1.0",
+  "latest_version_code": 2
+}</code></pre>
+        </details>
+        <details class="help-disclosure">
+          <summary>GET · 下载 APK</summary>
+          <pre><code>{{.PublicURL}}/api/v1/apps/com.zlight106.easyupdate.demo/releases/2/download</code></pre>
+          <p>建议直接使用最新版本响应中的 <code>download_url</code>。返回 APK 二进制流，仅支持已发布版本。支持 HTTP Range，部分下载返回 206；ETag 为 SHA256。</p>
+          <p>下载后校验大小和 SHA256，再核对包名、版本及安装签名。校验失败时删除缓存并重新下载。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>POST · 设备心跳</summary>
+          <pre><code>{{.PublicURL}}/api/v1/heartbeat
+Content-Type: application/json
+
+{
+  "device_id": "a94187b3-cc2f-4ef0-93fb-04e7e3444342",
+  "package_name": "com.zlight106.easyupdate.demo",
+  "version_name": "1.0.0",
+  "version_code": 1
+}</code></pre>
+          <p>成功返回 <code>{"ok":true}</code>。正文上限 4 KB，只接受上述四个字段；应用必须已创建，版本名称不能为空，版本号范围为 0–2147483647。</p>
+          <p><code>device_id</code> 使用随机 UUID，首次生成后保存在客户端。同一应用的同一 UUID 会更新现有设备记录。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>GET · 已发布公告</summary>
+          <pre><code>{{.PublicURL}}/api/v1/announcements</code></pre>
+          <p>返回 <code>{"items":[...]}</code>；每项包含 <code>id</code>、<code>title</code>、<code>content</code> 和 <code>created_at</code>，按创建时间从新到旧排列。无公告时为 <code>{"items":[]}</code>。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>错误响应</summary>
+          <pre><code>{"error":"no_release","message":"Not found"}</code></pre>
+          <div class="table-wrap"><table class="help-table">
+            <thead><tr><th>HTTP</th><th>error</th><th>处理</th></tr></thead>
+            <tbody>
+              <tr><td>400</td><td><code>invalid_version</code></td><td>检查包名、版本名称或整数版本号。</td></tr>
+              <tr><td>400</td><td><code>invalid_body</code> / <code>invalid_device_id</code></td><td>检查心跳 JSON、大小和 UUID。</td></tr>
+              <tr><td>404</td><td><code>app_not_found</code></td><td>先创建对应包名的应用。</td></tr>
+              <tr><td>404</td><td><code>no_release</code> / <code>release_not_found</code></td><td>检查版本是否存在且已发布。</td></tr>
+              <tr><td>404</td><td><code>not_found</code></td><td>检查 API 路径。</td></tr>
+              <tr><td>500</td><td><code>download_error</code> / <code>internal_error</code></td><td>检查服务日志、数据库和 APK 文件。</td></tr>
+            </tbody>
+          </table></div>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="android" aria-labelledby="android-title">
+      <h2 class="panel-title" id="android-title">Android 接入</h2>
+      <div class="help-body">
+        <ol>
+          <li>以客户端包名和当前 <code>versionCode</code> 请求最新版本接口。</li>
+          <li>展示版本名称、版本说明，并根据 <code>mandatory</code> 处理延后更新。</li>
+          <li>在后台线程将 APK 流式下载到缓存，校验大小、SHA256、包名和版本。</li>
+          <li>通过 FileProvider 提供文件 URI，调用系统安装器。同包名升级需使用相同签名。</li>
+          <li>可选：应用启动及更新检查后发送心跳；安装完成后由新版本上报。</li>
+        </ol>
+        <p>Android 8+ 需允许此应用安装未知来源应用。局域网 HTTP 需要客户端网络配置允许明文流量；正式部署可使用 HTTPS。Android 4.4 的 TLS 兼容性需在目标设备上验证。</p>
+        <details class="help-disclosure">
+          <summary>使用随项目提供的 Android Demo</summary>
+          <p>使用 Android Studio 打开 <code>android-demo/</code>。环境：JDK 17、Android SDK 35；最低 Android 4.4 / API 19。包名为 <code>com.zlight106.easyupdate.demo</code>。</p>
+          <pre><code># Windows / PowerShell
+cd android-demo
+.\gradlew.bat assembleDebug
+.\gradlew.bat assembleDebug -PdemoVersionCode=2 "-PdemoVersionName=1.1.0"
+
+# Linux / macOS
+./gradlew assembleDebug
+./gradlew assembleDebug -PdemoVersionCode=2 -PdemoVersionName=1.1.0</code></pre>
+          <p>默认构建为 <code>1.0.0 / 1</code>，APK 在 <code>app/build/outputs/apk/debug/</code>。构建 v2 前另存 v1；构建目录中的 APK 会被覆盖。</p>
+          <ol>
+            <li>安装 v1，在后台创建 Demo 应用，上传同签名 v2 并发布。</li>
+            <li>在 Demo 中填写服务器地址。模拟器访问本机常用 <code>http://10.0.2.2:8080</code>；真机使用局域网 IP。</li>
+            <li>依次点击 <code>Check Update → Download Update → Install</code>，在系统安装器中确认。</li>
+          </ol>
+          <p>服务器的公开地址也需能被设备访问。Demo 先完成大小、SHA256、包名和版本校验，再显示安装按钮；UUID 保存在 SharedPreferences。</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="github" aria-labelledby="github-title">
+      <h2 class="panel-title" id="github-title">GitHub 导入</h2>
+      <div class="help-body">
+        <ol>
+          <li>在应用详情填写 <strong>Owner</strong>、<strong>Repository</strong> 和 APK 匹配规则，例如 <code>*.apk</code> 或 <code>*-arm64.apk</code>。</li>
+          <li>启用来源并保存，点击<strong>同步 GitHub</strong>。</li>
+          <li>确认导入的 APK 信息，创建草稿后手动发布。</li>
+        </ol>
+        <p>每次从最近 100 个 Release 中导入一个尚未入库的 APK，跳过 GitHub 草稿和已存在的版本号。匹配多个文件时缩小规则；没有匹配文件则检查仓库及文件名。</p>
+        <p>仅支持公开仓库，Token 可选。版本以 APK 元数据为准；Tag 只记录来源，不一致时需核对。同步由按钮触发，无定时自动发布。</p>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="records" aria-labelledby="records-title">
+      <h2 class="panel-title" id="records-title">公告与设备</h2>
+      <div class="help-body">
+        <p><a href="/admin/announcements">公告</a>：新建标题及正文，发布后进入公开公告 API。可编辑、取消发布；删除需输入公告编号确认。</p>
+        <p><a href="/admin/devices">设备</a>：查看已发送心跳的 UUID、应用、版本和最后上报时间；可按应用筛选，每页 50 条。最后上报时间表示最近收到心跳，不代表设备实时在线。</p>
+        <p>设备记录只包含随机 UUID 和应用版本，不采集 IMEI、Android ID 或设备指纹。重新安装或清除客户端数据后，Demo 会生成新的 UUID。</p>
+      </div>
+    </section>
+
+    <section class="panel help-section" id="maintenance" aria-labelledby="maintenance-title">
+      <h2 class="panel-title" id="maintenance-title">备份与排错</h2>
+      <div class="help-body">
+        <p><strong>备份：</strong>停止服务，复制 <code>config.yaml</code> 和整个 <code>data/</code> 目录。使用自定义路径时，备份配置指定的数据库目录和 APK 存储目录。</p>
+        <p><strong>恢复：</strong>停止服务，将备份放回配置指定的位置，确认文件权限后启动。数据库与 APK 应来自同一份备份。</p>
+        <details class="help-disclosure">
+          <summary>手机无法连接或下载</summary>
+          <p>检查 <code>server.listen</code> 是否允许外部访问、服务器防火墙和网络连通性。<code>server.public_url</code> 应填写手机能访问的地址；手机中的 <code>127.0.0.1</code> 指向手机自身。修改配置后重启。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>上传失败、包名不一致或版本号已存在</summary>
+          <p>确认文件为 APK、大小未超过 {{.MaxUploadMB}} MB，代理也允许该大小。包名必须与后台应用一致；已有版本号需改用新的 APK 版本号。解析失败时可安装 <code>apkanalyzer</code> 或 <code>aapt2</code> 并加入 PATH，或补齐确认页的缺失字段。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>检查不到更新或 Android 安装失败</summary>
+          <p>确认版本已发布且 <code>versionCode</code> 大于客户端当前版本。安装失败时核对签名是否相同、系统版本是否满足 APK 要求，以及未知来源安装权限。SHA256 不一致时重新下载。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>登录失败、会话过期或确认上传失效</summary>
+          <p>登录凭据以服务器配置文件为准。修改配置或重启后重新登录；会话校验失败时刷新页面。上传待确认文件在 30 分钟后失效，需重新上传。</p>
+        </details>
+        <details class="help-disclosure">
+          <summary>GitHub 同步失败</summary>
+          <p>检查公开仓库地址、匹配规则、网络和 API 额度。遇到请求限额可在配置中填写 Token 并重启。同步显示多个 APK 时，用文件名或架构缩小匹配范围。</p>
+        </details>
+      </div>
+    </section>
+  </div>
+</div>
+{{template "foot" .}}

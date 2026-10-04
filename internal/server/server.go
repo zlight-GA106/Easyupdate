@@ -71,6 +71,7 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.admin("GET /admin/apps/{id}/delete", s.deleteAppPage)
 	s.admin("POST /admin/apps/{id}/delete", s.deleteApp)
 	s.admin("GET /admin/settings", s.settings)
+	s.admin("GET /admin/help", s.help)
 	s.admin("GET /admin/apps/{id}/upload", s.uploadPage)
 	s.admin("POST /admin/apps/{id}/upload", s.upload)
 	s.admin("POST /admin/apps/{id}/releases", s.createRelease)

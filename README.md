@@ -26,6 +26,8 @@ go build -o easyupdate.exe .
 
 打开 `http://127.0.0.1:8080`，默认账号 **admin**，密码 **admin**。
 
+后台导航中的 **说明** 提供配置、版本发布、API、Android 接入、GitHub 导入及备份排错文档；也可登录后直接打开 [说明页](http://127.0.0.1:8080/admin/help)。
+
 凭据保存在服务器的 `config.yaml`，修改 `admin.username`、`admin.password` 后重启即可。配置和运行数据不进入 Git；运行时仅保留 bcrypt 哈希。重启后需要重新登录。
 
 `-config /path/config.yaml` 可指定配置文件。缺少配置时服务会退出，并提示复制示例文件；数据目录和数据库会自动创建。
