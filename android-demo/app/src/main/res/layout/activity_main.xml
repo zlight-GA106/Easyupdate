@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#F0F7FC" android:fillViewport="true">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="EasyUpdate" android:textColor="#22597F" android:textSize="30sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ZLIGHT106 Microsystems" android:textColor="#718A9E" android:textSize="12sp" android:layout_marginBottom="28dp" />
+    <TextView android:id="@+id/current" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#36566F" android:textSize="14sp" android:layout_marginBottom="20dp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Server URL" android:textSize="12sp" android:labelFor="@id/server_url" />
+    <EditText android:id="@+id/server_url" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textUri" android:singleLine="true" android:hint="http://10.0.2.2:8080" android:textSize="15sp" />
+    <Button android:id="@+id/check" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Check Update" android:layout_marginTop="16dp" />
+    <LinearLayout android:id="@+id/update_panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" android:paddingTop="24dp">
+        <TextView android:id="@+id/latest" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="20sp" android:textColor="#22597F" />
+        <TextView android:id="@+id/notes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textSize="14sp" />
+        <TextView android:id="@+id/metadata" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:textSize="13sp" />
+        <Button android:id="@+id/download" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Download Update" android:layout_marginTop="12dp" />
+        <ProgressBar android:id="@+id/progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:visibility="gone" />
+        <Button android:id="@+id/install" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Install" android:visibility="gone" />
+        <Button android:id="@+id/later" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Later" />
+    </LinearLayout>
+    <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:textColor="#526F85" android:textSize="14sp" android:accessibilityLiveRegion="polite" />
+</LinearLayout>
+</ScrollView>

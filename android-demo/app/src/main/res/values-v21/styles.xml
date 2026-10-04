@@ -1,0 +1,7 @@
+<resources>
+    <style name="AppTheme" parent="BaseAppTheme">
+        <item name="android:colorAccent">#167EB9</item>
+        <item name="android:statusBarColor">#1D79B4</item>
+        <item name="android:navigationBarColor">#1D79B4</item>
+    </style>
+</resources>
