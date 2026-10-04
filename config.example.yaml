@@ -1,0 +1,13 @@
+server:
+  listen: "0.0.0.0:8080"
+  public_url: "http://127.0.0.1:8080"
+database:
+  path: "./data/easyupdate.db"
+storage:
+  path: "./data/apks"
+  max_upload_mb: 512
+admin:
+  username: "admin"
+  password: "admin"
+github:
+  token: ""

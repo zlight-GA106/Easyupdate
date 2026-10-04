@@ -1,0 +1,13 @@
+/config.yaml
+/data/
+/easyupdate
+/easyupdate.exe
+/dist/
+/.tools/
+/.verification/
+*.log
+android-demo/.gradle/
+android-demo/.idea/
+android-demo/local.properties
+android-demo/**/build/
+android-demo/*.apk
