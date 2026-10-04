@@ -19,7 +19,17 @@ func (s *Server) overview(w http.ResponseWriter, r *http.Request) {
 		s.dbError(w, r, err)
 		return
 	}
-	s.render(w, r, "overview.html", map[string]any{"Title": "概览", "Nav": "overview", "AppCount": apps, "ReleaseCount": releases, "DeviceCount": devices})
+	recent, err := s.db.Releases(r.Context(), 0)
+	if err != nil {
+		s.dbError(w, r, err)
+		return
+	}
+	heartbeats, err := s.db.Devices(r.Context(), 0, 5, 0)
+	if err != nil {
+		s.dbError(w, r, err)
+		return
+	}
+	s.render(w, r, "overview.html", map[string]any{"Title": "概览", "Nav": "overview", "AppCount": apps, "ReleaseCount": releases, "DeviceCount": devices, "Releases": recent, "Devices": heartbeats})
 }
 func (s *Server) apps(w http.ResponseWriter, r *http.Request) {
 	items, err := s.db.Apps(r.Context())

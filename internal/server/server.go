@@ -81,6 +81,8 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.admin("POST /admin/releases/{id}/delete", s.deleteRelease)
 	s.mux.HandleFunc("GET /api/v1/apps/{packageName}/latest", s.latest)
 	s.mux.HandleFunc("GET /api/v1/apps/{packageName}/releases/{versionCode}/download", s.download)
+	s.mux.HandleFunc("POST /api/v1/heartbeat", s.heartbeat)
+	s.admin("GET /admin/devices", s.devices)
 	return s, nil
 }
 
