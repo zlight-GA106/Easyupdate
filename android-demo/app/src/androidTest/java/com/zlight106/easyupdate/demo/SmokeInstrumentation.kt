@@ -18,7 +18,7 @@ class SmokeInstrumentation : Instrumentation() {
         try {
             val activity = startActivitySync(Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             runOnMainSync {
-                activity.findViewById<EditText>(R.id.server_url).setText(options.getString("server", "http://10.0.2.2:8081"))
+                activity.findViewById<EditText>(R.id.server_url).setText(options.getString("server", "http://10.0.2.2:8080"))
                 activity.findViewById<Button>(R.id.check).performClick()
             }
             await(activity, "Update available")

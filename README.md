@@ -117,22 +117,22 @@ Windows 使用 `gradlew.bat`。SDK 路径通过 `ANDROID_HOME` 或本地 `local.
 
 Demo 包名：`com.zlight106.easyupdate.demo`。支持 Android 4.4 / API 19，默认版本 `1.0.0 / 1`，普通 Activity + XML，无 Compose。仅额外使用 AndroidX Core 的 FileProvider。
 
-完整验证：先安装 v1，再将同一签名的 v2 APK 上传到服务器并发布。Demo 输入服务器地址，依次执行 **Check Update → Download Update → Verification Passed → Install**。模拟器默认地址为 `http://10.0.2.2:8080`；真机使用服务器局域网地址，并相应设置 `server.listen` 与 `server.public_url`。
+首次升级测试建议以 `dist/android/easyupdate-demo-v1.apk`（`1.0.0 / 1`）为起点；将同一签名的 `dist/android/easyupdate-demo-v2.apk`（`1.1.0 / 2`）上传到服务器并发布。若设备已安装更高版本，保留应用数据和 UUID，改用更高 `versionCode` 构建后续升级，不要卸载或降级。当前测试服务器为 `http://192.168.95.55:19910`，服务端 `server.public_url` 和 Demo 的 Server URL 均使用此地址，不带 `/admin`。依次执行 **Check Update → Download Update → Verification Passed → Install**。模拟器默认地址仍为 `http://10.0.2.2:8080`。
 
 Demo 首次启动生成 UUID 并保存到 SharedPreferences，启动和检查更新后异步发送心跳。下载流式写入缓存，校验大小、SHA256、包名和版本后才提供安装按钮。安装使用 FileProvider 和系统安装器；Android 8+ 按提示打开未知来源安装设置。强制更新仅隐藏 Later。
 
 为局域网调试启用了 HTTP。Android 4.4 的 TLS 较旧，现代 HTTPS 服务可能不兼容；客户端保持系统证书验证，不降低服务器 TLS 安全性。同包名升级要求 APK 使用相同签名。
 
-可选设备测试：
+可选仪表测试，在 `android-demo/` 目录执行。构建目录的 `app-debug.apk` 可能已是 v2，首次测试建议使用 `dist` 中的 v1；以下安装命令仅适用于尚未安装更高版本的设备。安装后，在 Demo 保存上述服务器地址；Android 8+需允许 Demo 安装未知来源应用，再运行仪表命令：
 
 ```sh
 ./gradlew assembleDebugAndroidTest
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r ../dist/android/easyupdate-demo-v1.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell am instrument -w -e server http://10.0.2.2:8080 com.zlight106.easyupdate.demo.test/com.zlight106.easyupdate.demo.SmokeInstrumentation
+adb shell am instrument -w -e server http://192.168.95.55:19910 com.zlight106.easyupdate.demo.test/com.zlight106.easyupdate.demo.SmokeInstrumentation
 ```
 
-需先发布版本号更高、同签名的 Demo APK。测试检查更新、下载、验证并发起系统安装流程；系统安装确认由用户完成。
+出现 `PASS Check / Download / SHA256 / FileProvider installer intent` 且 `INSTRUMENTATION_CODE: -1` 表示仪表通过；`FAIL` 或结果码 `0` 表示失败。仪表仅验证到发起安装，不验证实际升级和心跳。仍需在系统安装器确认安装、重新打开 Demo，确认已升级到发布的目标版本（首次测试为 `1.1.0 / 2`），后台同一 UUID 的版本号与之相同且最近上报时间增加；再次检查应显示 `Up to date`。
 
 ## GitHub 同步
 
