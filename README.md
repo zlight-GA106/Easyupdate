@@ -6,6 +6,18 @@ Go 标准库 HTTP、SQLite、服务端 HTML，无前端构建步骤。模板、�
 
 ## 运行
 
+仓库的 [dist/](dist/README.md) 包含 Windows、Linux x86-64 可执行文件和 Android Demo APK，可直接下载使用。
+
+Linux x86-64：
+
+```sh
+cp config.example.yaml config.yaml
+chmod +x dist/easyupdate-linux-amd64
+./dist/easyupdate-linux-amd64
+```
+
+从源码构建：
+
 ```sh
 cp config.example.yaml config.yaml
 go build -o easyupdate .
@@ -18,11 +30,10 @@ Windows：
 
 ```powershell
 Copy-Item config.example.yaml config.yaml
-go build -o easyupdate.exe .
-.\easyupdate.exe
+.\dist\easyupdate-windows-amd64.exe
 ```
 
-本次交付已包含 Windows 可执行文件，可直接运行 `easyupdate.exe`。
+Windows 从源码构建可运行 `go build -o easyupdate.exe .`。
 
 打开 `http://127.0.0.1:8080`，默认账号 **admin**，密码 **admin**。
 

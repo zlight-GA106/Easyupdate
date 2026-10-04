@@ -8,3 +8,5 @@ gradlew text eol=lf
 *.bat text eol=crlf
 *.jar binary
 *.png binary
+*.apk binary
+dist/easyupdate-* binary

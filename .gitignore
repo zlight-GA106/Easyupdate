@@ -2,7 +2,15 @@
 /data/
 /easyupdate
 /easyupdate.exe
-/dist/
+/dist/*
+!/dist/easyupdate-windows-amd64.exe
+!/dist/easyupdate-linux-amd64
+!/dist/SHA256SUMS.txt
+!/dist/README.md
+!/dist/android/
+/dist/android/*
+!/dist/android/easyupdate-demo-v1.apk
+!/dist/android/easyupdate-demo-v2.apk
 /.tools/
 /.verification/
 *.log
