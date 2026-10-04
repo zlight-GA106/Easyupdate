@@ -48,7 +48,7 @@ Windows 从源码构建可运行 `go build -o easyupdate.exe .`。
 - 应用管理、APK 上传确认、SHA256 和版本草稿。
 - 发布、取消发布、强制更新标记、版本说明。
 - 最新版本 API、流式下载和 HTTP Range。
-- 可选 UUID 心跳、设备列表与应用筛选。
+- 可选 UUID 心跳、设备新增/编辑/删除与应用筛选。
 - 公告管理和公开公告 API。
 - GitHub 公开仓库的手动导入。
 
@@ -62,7 +62,9 @@ Windows 从源码构建可运行 `go build -o easyupdate.exe .`。
 
 APK 存放在 `data/apks/{app_id}/{version_code}/app.apk`。同一应用的版本号唯一；替换 APK 需要创建新版本。只有已发布版本可被公开查询和下载，最新版始终按 `version_code` 排序。
 
-删除应用前需输入包名确认，有版本记录的应用禁止删除。删除版本需输入版本号确认，并删除关联 APK。
+应用、版本和公告列表提供编辑与删除入口。删除应用需输入包名确认，同时删除其版本、APK、设备记录和 GitHub 来源；删除版本需输入版本号确认，并删除关联 APK。
+
+设备支持新建、编辑、按应用筛选和删除。设备记录以应用和 UUID 唯一，删除需输入 UUID 确认；客户端再次发送心跳时会重新记录。
 
 ## API
 
@@ -160,7 +162,7 @@ docker run --name easyupdate -p 8080:8080 \
 go build ./...
 go test ./...
 go vet ./...
-python scripts/smoke.py ./easyupdate --api --extras
+python scripts/smoke.py ./easyupdate --api --extras --crud
 ```
 
 HTTP 验证会使用临时数据库与真实 APK，覆盖登录、上传确认、发布、最新版本、SHA256、Range、取消发布、心跳 upsert 和公告；结束后删除测试数据。

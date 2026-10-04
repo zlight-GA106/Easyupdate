@@ -5,6 +5,7 @@
 - Go 1.27.1 Windows amd64；项目最低版本 Go 1.26。
 - `go build ./...`、`go test ./...`、`go vet ./...`。
 - 实际 HTTP 验证：登录、CSRF、创建应用、真实 APK 上传、元数据、SHA256、草稿、发布、版本比较、流式下载、Range、取消发布、心跳 upsert、公告。
+- 增删改查：四类记录的列表操作、编辑、新建设备、确认删除、APK 清理和应用级联删除已在隔离实例验证；错误确认/CSRF 不删除，其他应用、设备和公告保留。手动登记设备不伪造心跳时间。
 - GitHub 实际导入：FossifyOrg/Clock 的公开 Release，APK 元数据 `1.6.0 / 10`，文件 9,110,265 字节；导入后保持草稿。
 - Android：JDK 17、SDK 35、Gradle 8.9；`assembleDebug`、`assembleDebugAndroidTest`、`lintDebug` 成功，生成版本 1 和版本 2 的 Demo APK。
 - 页面检查：桌面 1280 像素和手机 390 像素，页面无整体横向溢出；宽表格在自身容器内滚动。

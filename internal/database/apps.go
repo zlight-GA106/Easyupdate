@@ -82,13 +82,30 @@ func (s *Store) SaveApp(ctx context.Context, a App) (int64, error) {
 	return a.ID, nil
 }
 func (s *Store) DeleteApp(ctx context.Context, id int64) error {
-	res, err := s.DB.ExecContext(ctx, `DELETE FROM apps WHERE id=? AND NOT EXISTS(SELECT 1 FROM releases WHERE app_id=?)`, id, id)
+	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return ErrConflict
+	defer tx.Rollback()
+	var exists int
+	if err = tx.QueryRowContext(ctx, `SELECT 1 FROM apps WHERE id=?`, id).Scan(&exists); err != nil {
+		return err
 	}
-	return nil
+	// Releases use ON DELETE RESTRICT. Remove them in the same transaction;
+	// deleting the app then cascades its devices and GitHub source.
+	if _, err = tx.ExecContext(ctx, `DELETE FROM releases WHERE app_id=?`, id); err != nil {
+		return err
+	}
+	res, err := tx.ExecContext(ctx, `DELETE FROM apps WHERE id=?`, id)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return tx.Commit()
 }

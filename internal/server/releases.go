@@ -73,6 +73,21 @@ func (s *Server) showConfirmation(w http.ResponseWriter, r *http.Request, a data
 	p.Owner = sess.CSRF
 	token := randomToken()
 	s.uploadMu.Lock()
+	current, err := s.db.App(r.Context(), a.ID)
+	if err != nil {
+		s.uploadMu.Unlock()
+		s.storage.Discard(p.File)
+		s.dbError(w, r, err)
+		return
+	}
+	// Staging can overlap an app deletion. IDs may be reused by SQLite, so
+	// verify the original identity before attaching this upload to the app.
+	if current.CreatedAt != a.CreatedAt || current.PackageName != a.PackageName {
+		s.uploadMu.Unlock()
+		s.storage.Discard(p.File)
+		s.problem(w, r, 409, "应用已变更，请重新上传 APK")
+		return
+	}
 	for key, old := range s.pending {
 		if time.Now().After(old.Expires) {
 			s.storage.Discard(old.File)

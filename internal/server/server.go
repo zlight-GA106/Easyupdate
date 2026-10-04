@@ -84,6 +84,12 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.mux.HandleFunc("GET /api/v1/apps/{packageName}/releases/{versionCode}/download", s.download)
 	s.mux.HandleFunc("POST /api/v1/heartbeat", s.heartbeat)
 	s.admin("GET /admin/devices", s.devices)
+	s.admin("GET /admin/devices/new", s.deviceForm)
+	s.admin("POST /admin/devices/new", s.saveDevice)
+	s.admin("GET /admin/devices/{id}/edit", s.deviceForm)
+	s.admin("POST /admin/devices/{id}/edit", s.saveDevice)
+	s.admin("GET /admin/devices/{id}/delete", s.deleteDevicePage)
+	s.admin("POST /admin/devices/{id}/delete", s.deleteDevice)
 	s.mux.HandleFunc("GET /api/v1/announcements", s.publicAnnouncements)
 	s.admin("GET /admin/announcements", s.announcements)
 	s.admin("GET /admin/announcements/new", s.announcementForm)
@@ -186,7 +192,7 @@ func (s *Server) dbError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 	if errors.Is(err, database.ErrConflict) {
-		s.problem(w, r, 409, "包名已存在，或应用仍有版本记录")
+		s.problem(w, r, 409, "包名已存在，或已有版本的应用不能更改包名")
 		return
 	}
 	slog.Error("database operation", "route", r.Pattern, "error", err)

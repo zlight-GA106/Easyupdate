@@ -1,1 +1,42 @@
-{{template "head" .}}<div class="page-heading"><h1>设备</h1><form method="get" class="filter"><select name="app_id" aria-label="筛选应用"><option value="0">全部应用</option>{{range .Apps}}<option value="{{.ID}}" {{if eq $.AppID .ID}}selected{{end}}>{{.Name}}</option>{{end}}</select><button class="button">筛选</button></form></div><section class="panel"><div class="panel-title">设备记录 <span>第 {{.Page}} 页</span></div>{{if .Devices}}<div class="table-wrap"><table><thead><tr><th>Device ID</th><th>应用</th><th>版本</th><th>版本号</th><th>首次连接</th><th>最近连接</th></tr></thead><tbody>{{range .Devices}}<tr><td class="mono">{{.DeviceID}}</td><td><a href="/admin/apps/{{.AppID}}">{{.AppName}}</a></td><td>{{.VersionName}}</td><td class="mono">{{.VersionCode}}</td><td>{{date .FirstSeen}}</td><td>{{date .LastSeen}}</td></tr>{{end}}</tbody></table></div>{{else}}<div class="empty">暂无设备</div>{{end}}</section><div class="pagination">{{if .Previous}}<a class="button" href="?app_id={{.AppID}}&page={{.Previous}}">上一页</a>{{end}}{{if .HasNext}}<a class="button" href="?app_id={{.AppID}}&page={{.Next}}">下一页</a>{{end}}</div>{{template "foot" .}}
+{{template "head" .}}
+<div class="page-heading">
+  <h1>设备</h1>
+  <div class="actions">
+    <a class="button primary" href="/admin/devices/new{{if .AppID}}?app_id={{.AppID}}{{end}}">新建设备</a>
+    <form method="get" class="filter">
+      <select name="app_id" aria-label="筛选应用">
+        <option value="0">全部应用</option>
+        {{range .Apps}}<option value="{{.ID}}" {{if eq $.AppID .ID}}selected{{end}}>{{.Name}}</option>{{end}}
+      </select>
+      <button class="button">筛选</button>
+    </form>
+  </div>
+</div>
+<section class="panel">
+  <div class="panel-title">设备记录 <span>第 {{.Page}} 页</span></div>
+  {{if .Devices}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Device ID</th><th>应用</th><th>版本</th><th>版本号</th><th>首次记录</th><th>最近上报</th><th>操作</th></tr></thead>
+      <tbody>
+        {{range .Devices}}
+        <tr>
+          <td class="mono">{{.DeviceID}}</td>
+          <td><a href="/admin/apps/{{.AppID}}">{{.AppName}}</a></td>
+          <td>{{.VersionName}}</td>
+          <td class="mono">{{.VersionCode}}</td>
+          <td>{{date .FirstSeen}}</td>
+          <td>{{date .LastSeen}}</td>
+          <td><div class="row-actions"><a class="button" href="/admin/devices/{{.ID}}/edit">编辑</a><a class="button danger" href="/admin/devices/{{.ID}}/delete">删除</a></div></td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}<div class="empty">暂无设备</div>{{end}}
+</section>
+<div class="pagination">
+  {{if .Previous}}<a class="button" href="?app_id={{.AppID}}&amp;page={{.Previous}}">上一页</a>{{end}}
+  {{if .HasNext}}<a class="button" href="?app_id={{.AppID}}&amp;page={{.Next}}">下一页</a>{{end}}
+</div>
+{{template "foot" .}}

@@ -96,7 +96,7 @@ docker run --name easyupdate -p 8080:8080 \
           <li><strong>草稿</strong>不会进入公开 API。发布后才可查询和下载；取消发布后，API 会选择剩余已发布版本中版本号最大的版本。</li>
           <li>版本详情可以修改版本说明和强制更新标记。替换 APK 应构建并上传新的版本号。</li>
           <li>强制更新标记通过 API 交给客户端处理；Demo 会隐藏 <code>Later</code> 按钮，安装仍由系统确认。</li>
-          <li>删除版本需输入版本号，会删除记录及 APK。删除应用需输入包名，并先删除其全部版本。</li>
+          <li>列表提供编辑与删除入口。删除版本需输入版本号，会删除记录及 APK；删除应用需输入包名，同时删除其版本、APK、设备记录和 GitHub 来源。</li>
         </ul>
       </div>
     </section>
@@ -222,7 +222,7 @@ cd android-demo
       <h2 class="panel-title" id="records-title">公告与设备</h2>
       <div class="help-body">
         <p><a href="/admin/announcements">公告</a>：新建标题及正文，发布后进入公开公告 API。可编辑、取消发布；删除需输入公告编号确认。</p>
-        <p><a href="/admin/devices">设备</a>：查看已发送心跳的 UUID、应用、版本和最后上报时间；可按应用筛选，每页 50 条。最后上报时间表示最近收到心跳，不代表设备实时在线。</p>
+        <p><a href="/admin/devices">设备</a>：可新建、编辑、按应用筛选和删除，每页 50 条。删除需输入 UUID 确认；客户端再次上报心跳时会重新记录。编辑保留原有上报时间。</p>
         <p>设备记录只包含随机 UUID 和应用版本，不采集 IMEI、Android ID 或设备指纹。重新安装或清除客户端数据后，Demo 会生成新的 UUID。</p>
       </div>
     </section>

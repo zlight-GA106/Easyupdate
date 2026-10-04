@@ -6,6 +6,7 @@
   </div>
   <div class="actions">
     <a class="button" href="/admin/apps/{{.Release.AppID}}">返回应用</a>
+    <a class="button" href="#edit">编辑</a>
     <form method="post" action="/admin/releases/{{.Release.ID}}/publish">
       {{template "csrf" .}}
       {{if .Release.Published}}
@@ -14,6 +15,7 @@
       <button type="submit" class="button primary default" name="action" value="publish">发布版本</button>
       {{end}}
     </form>
+    <a class="button danger" href="/admin/releases/{{.Release.ID}}/delete">删除</a>
   </div>
 </div>
 <section class="panel">
@@ -28,7 +30,7 @@
     {{if .Release.Published}}<dt>下载地址</dt><dd><a class="mono" href="{{.DownloadURL}}">{{.DownloadURL}}</a></dd>{{end}}
   </dl>
 </section>
-<section class="panel">
+<section class="panel" id="edit">
   <div class="panel-title">版本说明</div>
   <form method="post" action="/admin/releases/{{.Release.ID}}/edit" class="form-panel">
     {{template "csrf" .}}
@@ -40,5 +42,4 @@
     <button type="submit" class="button default">保存</button>
   </form>
 </section>
-<a class="danger-link" href="/admin/releases/{{.Release.ID}}/delete">删除版本及 APK</a>
 {{template "foot" .}}

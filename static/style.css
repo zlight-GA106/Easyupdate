@@ -208,3 +208,12 @@ button.busy { pointer-events: none; }
 @media(prefers-reduced-motion:reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+.row-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.row-actions form { margin: 0; }
+.row-actions .button { flex-shrink: 0; }
+a.button.danger { color: #9a3832; }
+.app-heading > div { min-width: 0; }
+.page-heading > .actions { max-width: 100%; }
+@media(max-width:760px) {
+  .app-heading h1 { overflow-wrap: anywhere; }
+}

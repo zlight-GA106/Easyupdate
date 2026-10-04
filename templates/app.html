@@ -1,1 +1,58 @@
-{{template "head" .}}<div class="page-heading"><div class="app-heading"><span class="app-icon large">{{initial .App.Name}}</span><div><h1>{{.App.Name}}</h1><p class="mono muted">{{.App.PackageName}}</p></div></div><div class="actions"><a class="button" href="/admin/apps/{{.App.ID}}/edit">编辑</a><a class="button primary" href="/admin/apps/{{.App.ID}}/upload">＋ 上传 APK</a></div></div>{{if .App.Description}}<p class="description">{{.App.Description}}</p>{{end}}{{if .Latest.ID}}<section class="panel"><div class="panel-title">最新发布 <span class="badge published">已发布</span></div><div class="latest-release"><div><h2><a href="/admin/releases/{{.Latest.ID}}">{{.Latest.VersionName}}</a> <span class="mono muted">{{.Latest.VersionCode}}</span></h2><p class="muted">{{size .Latest.APKSize}} · {{date .Latest.PublishedAt}}</p></div><a class="button" href="/api/v1/apps/{{.App.PackageName}}/releases/{{.Latest.VersionCode}}/download">下载 APK</a></div></section>{{end}}<section class="panel"><div class="panel-title">版本历史 <span>{{len .Releases}}</span></div>{{if .Releases}}<div class="table-wrap"><table><thead><tr><th>版本</th><th>版本号</th><th>状态</th><th>强制更新</th><th>大小</th><th>创建时间</th></tr></thead><tbody>{{range .Releases}}<tr><td><a href="/admin/releases/{{.ID}}">{{.VersionName}}</a></td><td class="mono">{{.VersionCode}}</td><td><span class="badge {{if .Published}}published{{else}}draft{{end}}">{{if .Published}}已发布{{else}}草稿{{end}}</span></td><td>{{if .Mandatory}}是{{else}}—{{end}}</td><td>{{size .APKSize}}</td><td>{{date .CreatedAt}}</td></tr>{{end}}</tbody></table></div>{{else}}<div class="empty">暂无版本<a href="/admin/apps/{{.App.ID}}/upload">上传 APK →</a></div>{{end}}</section>{{if .GitHubEnabled}}{{template "github-source" .}}{{end}}<a class="danger-link" href="/admin/apps/{{.App.ID}}/delete">删除应用</a>{{template "foot" .}}
+{{template "head" .}}
+<div class="page-heading">
+  <div class="app-heading">
+    <span class="app-icon large">{{initial .App.Name}}</span>
+    <div><h1>{{.App.Name}}</h1><p class="mono muted">{{.App.PackageName}}</p></div>
+  </div>
+  <div class="actions">
+    <a class="button" href="/admin/apps/{{.App.ID}}/edit">编辑</a>
+    <a class="button primary" href="/admin/apps/{{.App.ID}}/upload">＋ 上传 APK</a>
+    <a class="button danger" href="/admin/apps/{{.App.ID}}/delete">删除</a>
+  </div>
+</div>
+{{if .App.Description}}<p class="description">{{.App.Description}}</p>{{end}}
+{{if .Latest.ID}}
+<section class="panel">
+  <div class="panel-title">最新发布 <span class="badge published">已发布</span></div>
+  <div class="latest-release">
+    <div>
+      <h2><a href="/admin/releases/{{.Latest.ID}}">{{.Latest.VersionName}}</a> <span class="mono muted">{{.Latest.VersionCode}}</span></h2>
+      <p class="muted">{{size .Latest.APKSize}} · {{date .Latest.PublishedAt}}</p>
+    </div>
+    <a class="button" href="/api/v1/apps/{{.App.PackageName}}/releases/{{.Latest.VersionCode}}/download">下载 APK</a>
+  </div>
+</section>
+{{end}}
+<section class="panel">
+  <div class="panel-title">版本历史 <span>{{len .Releases}}</span></div>
+  {{if .Releases}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>版本</th><th>版本号</th><th>状态</th><th>强制更新</th><th>大小</th><th>创建时间</th><th>操作</th></tr></thead>
+      <tbody>
+        {{range .Releases}}
+        <tr>
+          <td><a href="/admin/releases/{{.ID}}">{{.VersionName}}</a></td>
+          <td class="mono">{{.VersionCode}}</td>
+          <td><span class="badge {{if .Published}}published{{else}}draft{{end}}">{{if .Published}}已发布{{else}}草稿{{end}}</span></td>
+          <td>{{if .Mandatory}}是{{else}}—{{end}}</td>
+          <td>{{size .APKSize}}</td>
+          <td>{{date .CreatedAt}}</td>
+          <td>
+            <div class="row-actions">
+              <a class="button" href="/admin/releases/{{.ID}}">查看</a>
+              <a class="button" href="/admin/releases/{{.ID}}#edit">编辑</a>
+              <a class="button danger" href="/admin/releases/{{.ID}}/delete">删除</a>
+            </div>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="empty">暂无版本<a href="/admin/apps/{{.App.ID}}/upload">上传 APK →</a></div>
+  {{end}}
+</section>
+{{if .GitHubEnabled}}{{template "github-source" .}}{{end}}
+{{template "foot" .}}

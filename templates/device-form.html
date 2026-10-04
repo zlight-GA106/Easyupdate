@@ -1,0 +1,32 @@
+{{template "head" .}}
+<div class="page-heading"><h1>{{.Title}}</h1></div>
+<section class="panel">
+  <div class="panel-title">设备信息</div>
+  {{if .Apps}}
+  <form method="post" class="form-panel">
+    {{template "csrf" .}}
+    <label>设备 UUID<input class="mono" type="text" name="device_id" value="{{.Device.DeviceID}}" maxlength="36" autocomplete="off" spellcheck="false" required placeholder="a94187b3-cc2f-4ef0-93fb-04e7e3444342"></label>
+    <label>应用
+      <select name="app_id" required>
+        <option value="" disabled {{if not .Device.AppID}}selected{{end}}>请选择应用</option>
+        {{range .Apps}}<option value="{{.ID}}" {{if eq $.Device.AppID .ID}}selected{{end}}>{{.Name}} · {{.PackageName}}</option>{{end}}
+      </select>
+    </label>
+    <div class="form-row">
+      <label>版本名称<input type="text" name="version_name" value="{{.Device.VersionName}}" maxlength="128" required></label>
+      <label>版本号<input type="number" name="version_code" value="{{.Device.VersionCode}}" min="0" max="2147483647" step="1" required></label>
+    </div>
+    <div class="actions">
+      <button type="submit" class="button primary default">保存</button>
+      <a class="button" href="/admin/devices">取消</a>
+    </div>
+  </form>
+  {{else}}<div class="empty"><p>请先创建应用</p><a class="button primary" href="/admin/apps/new">新建应用</a></div>{{end}}
+</section>
+{{if .Device.ID}}
+<section class="panel">
+  <div class="panel-title">记录时间</div>
+  <dl class="details"><dt>首次记录</dt><dd>{{date .Device.FirstSeen}}</dd><dt>最近上报</dt><dd>{{date .Device.LastSeen}}</dd></dl>
+</section>
+{{end}}
+{{template "foot" .}}

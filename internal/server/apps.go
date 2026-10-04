@@ -2,11 +2,13 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/zlight-GA106/EasyUpdate/internal/database"
+	"github.com/zlight-GA106/EasyUpdate/internal/storage"
 )
 
 var packagePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$`)
@@ -92,7 +94,13 @@ func (s *Server) deleteAppPage(w http.ResponseWriter, r *http.Request) {
 		s.dbError(w, r, err)
 		return
 	}
-	s.render(w, r, "delete.html", map[string]any{"Title": "删除应用", "Nav": "apps", "ConfirmName": a.PackageName, "Back": fmt.Sprintf("/admin/apps/%d", a.ID)})
+	var releases, devices int
+	if err = s.db.DB.QueryRowContext(r.Context(), `SELECT (SELECT COUNT(*) FROM releases WHERE app_id=?),(SELECT COUNT(*) FROM devices WHERE app_id=?)`, a.ID, a.ID).Scan(&releases, &devices); err != nil {
+		s.dbError(w, r, err)
+		return
+	}
+	notice := fmt.Sprintf("同时删除 %d 个版本及 APK、%d 条设备记录、GitHub 来源和待确认上传。", releases, devices)
+	s.render(w, r, "delete.html", map[string]any{"Title": "删除应用", "Nav": "apps", "ConfirmName": a.PackageName, "Back": fmt.Sprintf("/admin/apps/%d", a.ID), "DeleteNotice": notice})
 }
 func (s *Server) deleteApp(w http.ResponseWriter, r *http.Request) {
 	s.uploadMu.Lock()
@@ -108,6 +116,20 @@ func (s *Server) deleteApp(w http.ResponseWriter, r *http.Request) {
 	}
 	if err = s.db.DeleteApp(r.Context(), a.ID); err != nil {
 		s.dbError(w, r, err)
+		return
+	}
+	// Public APIs stop offering this application's APKs once the transaction
+	// commits. Invalidate pending tokens before attempting filesystem cleanup.
+	var staged []storage.Staged
+	for token, upload := range s.pending {
+		if upload.AppID == a.ID {
+			staged = append(staged, upload.File)
+			delete(s.pending, token)
+		}
+	}
+	if err = s.storage.DeleteApp(a.ID, staged...); err != nil {
+		slog.Error("application APK deletion", "app_id", a.ID, "error", err)
+		s.problem(w, r, 500, "应用及关联记录已删除，但文件清理失败；请检查存储目录")
 		return
 	}
 	redirect(w, r, "/admin/apps")

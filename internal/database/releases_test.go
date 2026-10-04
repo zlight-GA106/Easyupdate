@@ -38,7 +38,10 @@ func TestLatestUsesPublishedVersionCode(t *testing.T) {
 	if latest.VersionCode != 163 {
 		t.Fatal("unpublish ignored")
 	}
-	if err = s.DeleteApp(ctx, appID); !errors.Is(err, ErrConflict) {
-		t.Fatal("app with releases deleted")
+	if err = s.DeleteApp(ctx, appID); err != nil {
+		t.Fatal(err)
+	}
+	if releases, err := s.Releases(ctx, appID); err != nil || len(releases) != 0 {
+		t.Fatalf("deleted app releases: %+v %v", releases, err)
 	}
 }
