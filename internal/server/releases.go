@@ -149,6 +149,9 @@ func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	delete(s.pending, token)
+	if p.GitHubID > 0 {
+		s.db.GitHubChecked(r.Context(), a.ID, p.GitHubID)
+	}
 	slog.Info("release created", "release_id", id, "app_id", a.ID, "version_code", code)
 	redirect(w, r, fmt.Sprintf("/admin/releases/%d", id))
 }

@@ -81,7 +81,8 @@ func (s *Server) appDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	latest, _ := s.db.Latest(r.Context(), a.ID)
-	s.render(w, r, "app.html", map[string]any{"Title": a.Name, "Nav": "apps", "App": a, "Releases": releases, "Latest": latest})
+	source, _ := s.db.GitHubSource(r.Context(), a.ID)
+	s.render(w, r, "app.html", map[string]any{"Title": a.Name, "Nav": "apps", "App": a, "Releases": releases, "Latest": latest, "Source": source, "GitHubEnabled": true})
 }
 func (s *Server) deleteAppPage(w http.ResponseWriter, r *http.Request) {
 	a, err := s.db.App(r.Context(), idOf(r))

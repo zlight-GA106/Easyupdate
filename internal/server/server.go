@@ -92,6 +92,8 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.admin("POST /admin/announcements/{id}/publish", s.publishAnnouncement)
 	s.admin("GET /admin/announcements/{id}/delete", s.deleteAnnouncementPage)
 	s.admin("POST /admin/announcements/{id}/delete", s.deleteAnnouncement)
+	s.admin("POST /admin/apps/{id}/github", s.saveGitHub)
+	s.admin("POST /admin/apps/{id}/sync", s.syncGitHub)
 	return s, nil
 }
 
