@@ -11,10 +11,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/zlight-GA106/EasyUpdate/internal/config"
 	"github.com/zlight-GA106/EasyUpdate/internal/database"
+	"github.com/zlight-GA106/EasyUpdate/internal/storage"
 )
 
 type Server struct {
@@ -23,6 +25,9 @@ type Server struct {
 	templates *template.Template
 	auth      *auth
 	mux       *http.ServeMux
+	storage   *storage.Local
+	uploadMu  sync.Mutex
+	pending   map[string]pendingUpload
 }
 
 func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
@@ -42,7 +47,11 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("templates: %w", err)
 	}
-	s := &Server{cfg: c, db: db, templates: t, auth: a, mux: http.NewServeMux()}
+	local, err := storage.New(c.Storage.Path, c.Storage.MaxUploadMB<<20)
+	if err != nil {
+		return nil, fmt.Errorf("storage: %w", err)
+	}
+	s := &Server{cfg: c, db: db, templates: t, auth: a, mux: http.NewServeMux(), storage: local, pending: map[string]pendingUpload{}}
 	static, err := fs.Sub(assets, "static")
 	if err != nil {
 		return nil, err
@@ -62,6 +71,14 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.admin("GET /admin/apps/{id}/delete", s.deleteAppPage)
 	s.admin("POST /admin/apps/{id}/delete", s.deleteApp)
 	s.admin("GET /admin/settings", s.settings)
+	s.admin("GET /admin/apps/{id}/upload", s.uploadPage)
+	s.admin("POST /admin/apps/{id}/upload", s.upload)
+	s.admin("POST /admin/apps/{id}/releases", s.createRelease)
+	s.admin("GET /admin/releases/{id}", s.releasePage)
+	s.admin("POST /admin/releases/{id}/edit", s.editRelease)
+	s.admin("POST /admin/releases/{id}/publish", s.publishRelease)
+	s.admin("GET /admin/releases/{id}/delete", s.deleteReleasePage)
+	s.admin("POST /admin/releases/{id}/delete", s.deleteRelease)
 	return s, nil
 }
 
@@ -134,6 +151,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, name string, dat
 	w.Write(b.Bytes())
 }
 func (s *Server) problem(w http.ResponseWriter, r *http.Request, status int, message string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	s.render(w, r, "error.html", map[string]any{"Title": "操作未完成", "Error": message})
 }

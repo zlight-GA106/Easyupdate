@@ -65,7 +65,13 @@ func (s *Server) appDetail(w http.ResponseWriter, r *http.Request) {
 		s.dbError(w, r, err)
 		return
 	}
-	s.render(w, r, "app.html", map[string]any{"Title": a.Name, "Nav": "apps", "App": a})
+	releases, err := s.db.Releases(r.Context(), a.ID)
+	if err != nil {
+		s.dbError(w, r, err)
+		return
+	}
+	latest, _ := s.db.Latest(r.Context(), a.ID)
+	s.render(w, r, "app.html", map[string]any{"Title": a.Name, "Nav": "apps", "App": a, "Releases": releases, "Latest": latest})
 }
 func (s *Server) deleteAppPage(w http.ResponseWriter, r *http.Request) {
 	a, err := s.db.App(r.Context(), idOf(r))

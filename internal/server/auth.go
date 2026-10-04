@@ -156,6 +156,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	if hashErr != nil || subtle.ConstantTimeCompare([]byte(r.FormValue("username")), []byte(s.auth.username)) != 1 {
 		s.auth.failed(clientIP(r))
 		slog.Warn("login failure", "ip", clientIP(r))
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(401)
 		s.render(w, r, "login.html", map[string]any{"Title": "登录", "Error": "账号或密码错误"})
 		return
