@@ -83,6 +83,15 @@ func New(c config.Config, db *database.Store, assets fs.FS) (*Server, error) {
 	s.mux.HandleFunc("GET /api/v1/apps/{packageName}/releases/{versionCode}/download", s.download)
 	s.mux.HandleFunc("POST /api/v1/heartbeat", s.heartbeat)
 	s.admin("GET /admin/devices", s.devices)
+	s.mux.HandleFunc("GET /api/v1/announcements", s.publicAnnouncements)
+	s.admin("GET /admin/announcements", s.announcements)
+	s.admin("GET /admin/announcements/new", s.announcementForm)
+	s.admin("POST /admin/announcements/new", s.saveAnnouncement)
+	s.admin("GET /admin/announcements/{id}/edit", s.announcementForm)
+	s.admin("POST /admin/announcements/{id}/edit", s.saveAnnouncement)
+	s.admin("POST /admin/announcements/{id}/publish", s.publishAnnouncement)
+	s.admin("GET /admin/announcements/{id}/delete", s.deleteAnnouncementPage)
+	s.admin("POST /admin/announcements/{id}/delete", s.deleteAnnouncement)
 	return s, nil
 }
 
