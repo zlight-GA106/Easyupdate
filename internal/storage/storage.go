@@ -20,6 +20,7 @@ type Local struct {
 }
 type Staged struct {
 	Path, SHA256 string
+	ArtifactType string
 	Size         int64
 	Metadata     Metadata
 }
@@ -46,8 +47,15 @@ func (s *Local) Cleanup() {
 	}
 }
 func (s *Local) Stage(r io.Reader) (Staged, error) {
+	return s.StageArtifact(r, "apk")
+}
+func (s *Local) StageArtifact(r io.Reader, kind string) (Staged, error) {
 	var result Staged
-	f, err := os.CreateTemp(filepath.Join(s.Root, ".staging"), "*.apk")
+	if kind != "apk" && kind != "zip" {
+		return result, errors.New("unsupported artifact type")
+	}
+	result.ArtifactType = kind
+	f, err := os.CreateTemp(filepath.Join(s.Root, ".staging"), "*."+kind)
 	if err != nil {
 		return result, fmt.Errorf("temporary APK: %w", err)
 	}
@@ -76,23 +84,36 @@ func (s *Local) Stage(r io.Reader) (Staged, error) {
 	if err = f.Close(); err != nil {
 		return result, err
 	}
-	if err = ValidateAPK(result.Path); err != nil {
-		return result, err
+	if kind == "zip" {
+		result.Metadata, err = ReadZIPMetadata(result.Path)
+		if err != nil {
+			return result, err
+		}
+	} else {
+		if err = ValidateAPK(result.Path); err != nil {
+			return result, err
+		}
+		result.Metadata, _ = ReadMetadata(result.Path)
 	}
 	result.Size = n
 	result.SHA256 = hex.EncodeToString(hash.Sum(nil))
-	result.Metadata, _ = ReadMetadata(result.Path)
 	success = true
 	return result, nil
 }
 func (s *Local) Path(appID, code int64) string {
-	return filepath.Join(s.Root, strconv.FormatInt(appID, 10), strconv.FormatInt(code, 10), "app.apk")
+	return s.ArtifactPath(appID, code, "apk")
+}
+func (s *Local) ArtifactPath(appID, code int64, kind string) string {
+	if kind != "zip" {
+		kind = "apk"
+	}
+	return filepath.Join(s.Root, strconv.FormatInt(appID, 10), strconv.FormatInt(code, 10), "app."+kind)
 }
 func (s *Local) Commit(staged Staged, appID, code int64) (string, error) {
 	if appID <= 0 || code <= 0 {
 		return "", errors.New("invalid storage identity")
 	}
-	destination := s.Path(appID, code)
+	destination := s.ArtifactPath(appID, code, staged.ArtifactType)
 	parent := filepath.Dir(destination)
 	if err := os.MkdirAll(filepath.Dir(parent), 0700); err != nil {
 		return "", err
@@ -114,8 +135,10 @@ func (s *Local) Discard(staged Staged) {
 }
 func (s *Local) Delete(appID, code int64) error {
 	p := s.Path(appID, code)
-	if err := os.Remove(p); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
+	for _, kind := range []string{"apk", "zip"} {
+		if err := os.Remove(s.ArtifactPath(appID, code, kind)); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
 	}
 	return removeEmpty(filepath.Dir(p))
 }

@@ -7,7 +7,7 @@
       <label>Owner<input type="text" name="owner" value="{{.Source.Owner}}" placeholder="zlight-GA106" maxlength="39" required></label>
       <label>Repository<input type="text" name="repo" value="{{.Source.Repo}}" placeholder="EasyCent" maxlength="100" required></label>
     </div>
-    <label>APK 匹配规则<input type="text" name="asset_pattern" value="{{if .Source.AssetPattern}}{{.Source.AssetPattern}}{{else}}*.apk{{end}}" maxlength="128" required></label>
+    <label>更新包匹配规则<input type="text" name="asset_pattern" value="{{if .Source.AssetPattern}}{{.Source.AssetPattern}}{{else}}*.apk{{end}}" maxlength="128" required></label>
     <div class="check">
       <input type="checkbox" id="github-enabled" name="enabled" {{if .Source.Enabled}}checked{{end}}>
       <label for="github-enabled">启用</label>

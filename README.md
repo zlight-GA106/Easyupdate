@@ -1,6 +1,6 @@
 # EasyUpdate
 
-**ZLIGHT106 Microsystems** · 自托管 Android APK 更新服务器。
+**ZLIGHT106 Microsystems** · 自托管 APK / ZIP 更新服务器。
 
 Go 标准库 HTTP、SQLite、服务端 HTML，无前端构建步骤。模板、样式和迁移内嵌在可执行文件中。
 
@@ -45,7 +45,7 @@ Windows 从源码构建可运行 `go build -o easyupdate.exe .`。
 
 ## 功能
 
-- 应用管理、APK 上传确认、SHA256 和版本草稿。
+- 应用管理、APK / ZIP 上传确认、SHA256 和版本草稿。
 - 发布、取消发布、强制更新标记、版本说明。
 - 最新版本 API、流式下载和 HTTP Range。
 - 可选 UUID 心跳、设备新增/编辑/删除与应用筛选。
@@ -103,6 +103,21 @@ curl -X POST 'http://127.0.0.1:8080/api/v1/heartbeat' \
 
 成功返回 `{"ok":true}`。公开错误返回 JSON `error` 和 `message`；不存在的应用或已发布版本返回 404。
 
+## Windows / ZIP 更新包
+
+后台“上传更新包”支持 `.apk` 和 `.zip`；应用标识继续使用点分名称，例如 `com.zlight.t50labelprinter`。APK 的解析、存储与下载流程保持兼容，原数据库结构无需迁移。ZIP 存放在 `data/apks/{app_id}/{version_code}/app.zip`；版本列表和下载按钮显示实际类型。
+
+ZIP 根目录可包含 `easyupdate.json`，自动读取并锁定版本信息：
+
+```json
+{"package_name":"com.zlight.t50labelprinter","version_name":"1.7.0","version_code":10700}
+```
+
+元数据最多 4 KB；版本号为 1–2147483647 的整数。未附带元数据时，可在上传确认页手动填写应用与版本。服务会检查 ZIP 目录、重复名称、路径和展开大小，存储原始 ZIP，不在服务器上解压。
+
+公开 `latest` API 新增 `artifact_type`（`apk` / `zip`）与 `file_name`，其余字段及版本比较规则保持不变。ZIP 下载返回 `application/zip`，支持 Range、SHA256 ETag。客户端应验证大小与 SHA256；Windows 客户端可进一步核对 ZIP 内的版本信息，然后由用户解压运行。
+
+GitHub 来源匹配规则可填写 `*.zip` 或 `T50LabelPrinter-v*.zip`；同步读取 ZIP 的 easyupdate.json，确认创建草稿后发布。仅导入已发布的公开 GitHub Release，仍不自动发布。
 ## Android Demo
 
 使用 Android Studio 打开 `android-demo/`，或使用 JDK 17、Android SDK 35：

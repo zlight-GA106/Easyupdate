@@ -1,18 +1,18 @@
 {{template "head" .}}
 <div class="page-heading">
-  <h1>上传 APK</h1>
+  <h1>上传更新包</h1>
   <a class="button" href="/admin/apps/{{.App.ID}}">返回应用</a>
 </div>
 <section class="panel">
   <div class="panel-title">{{.App.Name}} <span class="mono">{{.App.PackageName}}</span></div>
   <form method="post" enctype="multipart/form-data" class="form-panel" data-upload>
     {{template "csrf" .}}
-    <label class="file-picker">APK 文件<input type="file" name="apk" accept=".apk,application/vnd.android.package-archive" required></label>
-    <div class="actions">
+    <label class="file-picker">APK / ZIP 文件<input type="file" name="apk" accept=".apk,.zip,application/vnd.android.package-archive,application/zip" required></label>
+    <p class="muted">ZIP 可在根目录包含 easyupdate.json（package_name、version_name、version_code），自动读取版本信息；未包含时请手动填写。</p><div class="actions">
       <button type="submit" class="button primary default">上传</button>
       <span class="upload-status" role="status"></span>
     </div>
-    <div role="progressbar" class="marquee upload-progress" data-upload-progress aria-label="上传 APK" hidden></div>
+    <div role="progressbar" class="marquee upload-progress" data-upload-progress aria-label="上传更新包" hidden></div>
   </form>
 </section>
 {{template "foot" .}}

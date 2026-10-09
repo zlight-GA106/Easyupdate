@@ -68,7 +68,7 @@ func (s *Server) syncGitHub(w http.ResponseWriter, r *http.Request) {
 		matches := []github.Asset{}
 		for _, asset := range item.Assets {
 			match, _ := path.Match(source.AssetPattern, asset.Name)
-			if match && strings.EqualFold(path.Ext(asset.Name), ".apk") {
+			if match && (strings.EqualFold(path.Ext(asset.Name), ".apk") || strings.EqualFold(path.Ext(asset.Name), ".zip")) {
 				matches = append(matches, asset)
 			}
 		}
@@ -76,12 +76,12 @@ func (s *Server) syncGitHub(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if len(matches) > 1 {
-			s.problem(w, r, 409, "匹配到多个 APK，请调整匹配规则")
+			s.problem(w, r, 409, "匹配到多个更新包，请调整匹配规则")
 			return
 		}
 		asset := matches[0]
 		if asset.Size > s.storage.MaxBytes {
-			s.problem(w, r, 413, "GitHub APK 超出上传上限")
+			s.problem(w, r, 413, "GitHub更新包超出上传上限")
 			return
 		}
 		stream, err := client.Download(r.Context(), asset.DownloadURL)
@@ -89,7 +89,7 @@ func (s *Server) syncGitHub(w http.ResponseWriter, r *http.Request) {
 			s.githubError(w, r, err)
 			return
 		}
-		file, err := s.storage.Stage(stream)
+		file, err := s.storage.StageArtifact(stream, strings.ToLower(strings.TrimPrefix(path.Ext(asset.Name), ".")))
 		stream.Close()
 		if err != nil {
 			s.uploadError(w, r, err)
@@ -97,12 +97,12 @@ func (s *Server) syncGitHub(w http.ResponseWriter, r *http.Request) {
 		}
 		if asset.Size > 0 && asset.Size != file.Size {
 			s.storage.Discard(file)
-			s.problem(w, r, 502, "GitHub APK 下载不完整")
+			s.problem(w, r, 502, "GitHub更新包下载不完整")
 			return
 		}
 		if file.Metadata.PackageName != "" && file.Metadata.PackageName != a.PackageName {
 			s.storage.Discard(file)
-			s.problem(w, r, 400, "GitHub APK 包名与应用不一致")
+			s.problem(w, r, 400, "GitHub更新包包名与应用不一致")
 			return
 		}
 		if file.Metadata.VersionCode > 0 {
@@ -123,7 +123,7 @@ func (s *Server) syncGitHub(w http.ResponseWriter, r *http.Request) {
 		slog.Info("GitHub sync", "app_id", a.ID, "release_id", item.ID)
 		return
 	}
-	s.problem(w, r, 409, "最近 100 个 Release 中没有可导入的 APK")
+	s.problem(w, r, 409, "最近 100 个 Release 中没有可导入的更新包")
 }
 func (s *Server) githubError(w http.ResponseWriter, r *http.Request, err error) {
 	slog.Warn("GitHub sync error", "error", err)

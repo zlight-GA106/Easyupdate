@@ -6,7 +6,7 @@
   </div>
   <div class="actions">
     <a class="button" href="/admin/apps/{{.App.ID}}/edit">编辑</a>
-    <a class="button primary" href="/admin/apps/{{.App.ID}}/upload">＋ 上传 APK</a>
+    <a class="button primary" href="/admin/apps/{{.App.ID}}/upload">＋ 上传更新包</a>
     <a class="button danger" href="/admin/apps/{{.App.ID}}/delete">删除</a>
   </div>
 </div>
@@ -19,7 +19,7 @@
       <h2><a href="/admin/releases/{{.Latest.ID}}">{{.Latest.VersionName}}</a> <span class="mono muted">{{.Latest.VersionCode}}</span></h2>
       <p class="muted">{{size .Latest.APKSize}} · {{date .Latest.PublishedAt}}</p>
     </div>
-    <a class="button" href="/api/v1/apps/{{.App.PackageName}}/releases/{{.Latest.VersionCode}}/download">下载 APK</a>
+    <a class="button" href="/api/v1/apps/{{.App.PackageName}}/releases/{{.Latest.VersionCode}}/download">下载 {{.Latest.ArtifactLabel}}</a>
   </div>
 </section>
 {{end}}
@@ -51,7 +51,7 @@
     </table>
   </div>
   {{else}}
-  <div class="empty">暂无版本<a href="/admin/apps/{{.App.ID}}/upload">上传 APK →</a></div>
+  <div class="empty">暂无版本<a href="/admin/apps/{{.App.ID}}/upload">上传更新包 →</a></div>
   {{end}}
 </section>
 {{if .GitHubEnabled}}{{template "github-source" .}}{{end}}

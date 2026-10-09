@@ -8,7 +8,7 @@
     {{if not .Metadata.Source}}<div class="notice">未读取到完整元数据，请手动确认。</div>{{end}}
     {{if .Upload.Tag}}
     <p>GitHub · <span class="mono">{{.Upload.Tag}}</span></p>
-    {{if .TagMismatch}}<p class="notice warning">Tag 与 APK 版本不一致。</p>{{end}}
+    {{if .TagMismatch}}<p class="notice warning">Tag 与更新包版本不一致。</p>{{end}}
     {{end}}
     <label>包名<input type="text" name="package_name" value="{{.Metadata.PackageName}}" maxlength="255" required {{if .Metadata.PackageName}}readonly{{end}}></label>
     <div class="form-row">

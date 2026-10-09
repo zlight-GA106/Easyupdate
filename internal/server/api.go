@@ -56,7 +56,7 @@ func (s *Server) latest(w http.ResponseWriter, r *http.Request) {
 		jsonResponse(w, 200, map[string]any{"package_name": app.PackageName, "update_available": false, "latest_version_name": rel.VersionName, "latest_version_code": rel.VersionCode})
 		return
 	}
-	jsonResponse(w, 200, map[string]any{"package_name": app.PackageName, "update_available": true, "version_name": rel.VersionName, "version_code": rel.VersionCode, "mandatory": rel.Mandatory, "published_at": rel.PublishedAt, "release_notes": rel.ReleaseNotes, "download_url": s.cfg.Server.PublicURL + downloadRoute(app.PackageName, rel.VersionCode), "size": rel.APKSize, "sha256": rel.APKSHA256})
+	jsonResponse(w, 200, map[string]any{"package_name": app.PackageName, "update_available": true, "version_name": rel.VersionName, "version_code": rel.VersionCode, "mandatory": rel.Mandatory, "published_at": rel.PublishedAt, "release_notes": rel.ReleaseNotes, "download_url": s.cfg.Server.PublicURL + downloadRoute(app.PackageName, rel.VersionCode), "size": rel.APKSize, "sha256": rel.APKSHA256, "artifact_type": rel.ArtifactType(), "file_name": rel.APKFilename})
 }
 func (s *Server) download(w http.ResponseWriter, r *http.Request) {
 	code, err := strconv.ParseInt(r.PathValue("versionCode"), 10, 64)
@@ -79,7 +79,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Only internally computed IDs determine the disk path.
-	f, err := os.Open(s.storage.Path(app.ID, code))
+	f, err := os.Open(s.storage.ArtifactPath(app.ID, code, rel.ArtifactType()))
 	if err != nil {
 		slog.Error("download error", "release_id", rel.ID, "error", err)
 		apiError(w, 500, "download_error", "APK unavailable")
@@ -92,9 +92,14 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) {
 		apiError(w, 500, "download_error", "APK unavailable")
 		return
 	}
-	w.Header().Set("Content-Type", "application/vnd.android.package-archive")
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s-%d.apk"`, app.PackageName, code))
+	kind := rel.ArtifactType()
+	contentType := "application/vnd.android.package-archive"
+	if kind == "zip" {
+		contentType = "application/zip"
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s-%d.%s"`, app.PackageName, code, kind))
 	w.Header().Set("ETag", `"`+rel.APKSHA256+`"`)
 	w.Header().Set("Cache-Control", "no-cache")
-	http.ServeContent(w, r, "app.apk", info.ModTime(), f)
+	http.ServeContent(w, r, "app."+kind, info.ModTime(), f)
 }

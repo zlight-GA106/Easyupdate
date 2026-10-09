@@ -18,7 +18,7 @@
       <div class="help-body">
         <ol class="help-steps">
           <li><a href="/admin/apps/new">新建应用</a>，填写名称和 APK 的 Android 包名。</li>
-          <li>进入应用，点击<strong>上传 APK</strong>，确认版本信息并创建草稿。</li>
+          <li>进入应用，点击<strong>上传更新包</strong>，确认版本信息并创建草稿。</li>
           <li>打开草稿，点击<strong>发布版本</strong>。客户端即可查询并下载。</li>
         </ol>
         <p>首次登录：账号 <code>admin</code>，密码 <code>admin</code>。在服务器配置文件中修改，重启后生效。</p>
@@ -172,7 +172,16 @@ Content-Type: application/json
       </div>
     </section>
 
-    <section class="panel help-section" id="android" aria-labelledby="android-title">
+    <section class="panel help-section" id="zip" aria-labelledby="zip-title">
+      <h2 class="panel-title" id="zip-title">Windows / ZIP 更新包</h2>
+      <div class="help-body">
+        <p>“上传更新包”支持 APK 和 ZIP。ZIP 使用点分应用标识，例如 <code>com.zlight.t50labelprinter</code>。APK 继续使用 Android 包名。</p>
+        <p>ZIP 根目录可添加 <code>easyupdate.json</code>，自动读取并锁定应用标识、版本名称和整数版本号；未包含时可在确认页手动填写。</p>
+        <pre><code>{"package_name":"com.zlight.t50labelprinter","version_name":"1.7.0","version_code":10700}</code></pre>
+        <p>公开最新版本 API 额外返回 <code>artifact_type</code>（apk / zip）和 <code>file_name</code>。ZIP 下载返回 application/zip，并支持 Range 和 SHA256 ETag。客户端应校验大小、SHA256 和包内版本信息，关闭旧程序后解压运行。</p>
+        <p>GitHub 来源支持 <code>*.zip</code>；同步后确认元数据、创建草稿，再手动发布。现有应用、APK、版本记录和设备数据继续使用。</p>
+      </div>
+    </section>    <section class="panel help-section" id="android" aria-labelledby="android-title">
       <h2 class="panel-title" id="android-title">Android 接入</h2>
       <div class="help-body">
         <ol>

@@ -7,7 +7,7 @@
 | [android/easyupdate-demo-v1.apk](android/easyupdate-demo-v1.apk) | Android Demo 1.0.0 / 1 |
 | [android/easyupdate-demo-v2.apk](android/easyupdate-demo-v2.apk) | Android Demo 1.1.0 / 2 |
 
-服务端源码提交：`ebc96de4951ff5a4a75f39dc811b1e2a85b06795`。Go 1.27.1、`CGO_ENABLED=0`，构建参数为 `-trimpath -ldflags "-s -w"`。
+服务端包含 ZIP 更新支持，源码与本次构建产物在同一提交发布。Go 1.27.1、`CGO_ENABLED=0`，构建参数为 `-trimpath -ldflags "-s -w"`。
 
 在项目根目录复制 `config.example.yaml` 为 `config.yaml`，再运行对应程序。程序使用当前工作目录下的配置与数据；账号密码在配置文件中修改。
 

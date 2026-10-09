@@ -1,5 +1,10 @@
 package database
 
+import (
+	"path/filepath"
+	"strings"
+)
+
 type App struct {
 	ID                                                             int64
 	Name, PackageName, Description, IconPath, CreatedAt, UpdatedAt string
@@ -12,6 +17,16 @@ type Release struct {
 	Mandatory, Published                                                                          bool
 	AppName, PackageName                                                                          string
 }
+
+// Existing APK records retain their schema and on-disk paths.
+func (r Release) ArtifactType() string {
+	if strings.EqualFold(filepath.Ext(r.APKFilename), ".zip") {
+		return "zip"
+	}
+	return "apk"
+}
+func (r Release) ArtifactLabel() string { return strings.ToUpper(r.ArtifactType()) }
+
 type Device struct {
 	ID, AppID, VersionCode                              int64
 	DeviceID, AppName, VersionName, FirstSeen, LastSeen string

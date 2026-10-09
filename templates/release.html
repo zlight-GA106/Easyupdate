@@ -21,7 +21,7 @@
 <section class="panel">
   <div class="panel-title">版本信息 <span class="badge {{if .Release.Published}}published{{else}}draft{{end}}">{{if .Release.Published}}已发布{{else}}草稿{{end}}</span></div>
   <dl class="details">
-    <dt>APK</dt><dd>{{.Release.APKFilename}}</dd>
+    <dt>{{.Release.ArtifactLabel}}</dt><dd>{{.Release.APKFilename}}</dd>
     <dt>大小</dt><dd>{{size .Release.APKSize}}</dd>
     <dt>SHA256</dt><dd class="mono hash">{{.Release.APKSHA256}}</dd>
     <dt>创建时间</dt><dd>{{date .Release.CreatedAt}}</dd>

@@ -29,7 +29,7 @@ func (s *Server) uploadPage(w http.ResponseWriter, r *http.Request) {
 		s.dbError(w, r, err)
 		return
 	}
-	s.render(w, r, "upload.html", map[string]any{"Title": "上传 APK", "Nav": "apps", "App": a})
+	s.render(w, r, "upload.html", map[string]any{"Title": "上传更新包", "Nav": "apps", "App": a})
 }
 func (s *Server) upload(w http.ResponseWriter, r *http.Request) {
 	a, err := s.db.App(r.Context(), idOf(r))
@@ -39,15 +39,16 @@ func (s *Server) upload(w http.ResponseWriter, r *http.Request) {
 	}
 	file, header, err := r.FormFile("apk")
 	if err != nil {
-		s.problem(w, r, 400, "请选择 APK")
+		s.problem(w, r, 400, "请选择更新包")
 		return
 	}
 	defer file.Close()
-	if !strings.EqualFold(filepath.Ext(header.Filename), ".apk") {
-		s.problem(w, r, 400, "文件扩展名必须为 .apk")
+	kind := strings.ToLower(strings.TrimPrefix(filepath.Ext(header.Filename), "."))
+	if kind != "apk" && kind != "zip" {
+		s.problem(w, r, 400, "文件扩展名必须为 .apk 或 .zip")
 		return
 	}
-	staged, err := s.storage.Stage(file)
+	staged, err := s.storage.StageArtifact(file, kind)
 	if err != nil {
 		s.uploadError(w, r, err)
 		return
@@ -56,17 +57,17 @@ func (s *Server) upload(w http.ResponseWriter, r *http.Request) {
 	s.showConfirmation(w, r, a, p)
 }
 func (s *Server) uploadError(w http.ResponseWriter, r *http.Request, err error) {
-	slog.Warn("APK upload error", "error", err)
+	slog.Warn("artifact upload error", "error", err)
 	if errors.Is(err, storage.ErrTooLarge) {
-		s.problem(w, r, 413, "APK 超出上传上限")
+		s.problem(w, r, 413, "更新包超出上传上限")
 		return
 	}
-	s.problem(w, r, 400, "无法读取 APK，请检查文件格式")
+	s.problem(w, r, 400, "无法读取更新包，请检查文件格式")
 }
 func (s *Server) showConfirmation(w http.ResponseWriter, r *http.Request, a database.App, p pendingUpload) {
 	if p.File.Metadata.PackageName != "" && p.File.Metadata.PackageName != a.PackageName {
 		s.storage.Discard(p.File)
-		s.problem(w, r, 400, "APK 包名与应用不一致")
+		s.problem(w, r, 400, "更新包包名与应用不一致")
 		return
 	}
 	sess, _ := s.auth.current(r)
@@ -85,7 +86,7 @@ func (s *Server) showConfirmation(w http.ResponseWriter, r *http.Request, a data
 	if current.CreatedAt != a.CreatedAt || current.PackageName != a.PackageName {
 		s.uploadMu.Unlock()
 		s.storage.Discard(p.File)
-		s.problem(w, r, 409, "应用已变更，请重新上传 APK")
+		s.problem(w, r, 409, "应用已变更，请重新上传更新包")
 		return
 	}
 	for key, old := range s.pending {
@@ -104,7 +105,7 @@ func (s *Server) showConfirmation(w http.ResponseWriter, r *http.Request, a data
 	s.uploadMu.Unlock()
 	tagMismatch := p.Tag != "" && p.File.Metadata.VersionName != "" && strings.TrimPrefix(p.Tag, "v") != p.File.Metadata.VersionName
 	s.render(w, r, "upload-confirm.html", map[string]any{"Title": "确认版本", "Nav": "apps", "App": a, "Upload": p, "Token": token, "Metadata": p.File.Metadata, "TagMismatch": tagMismatch})
-	slog.Info("APK uploaded", "app_id", a.ID, "size", p.File.Size, "metadata", p.File.Metadata.Source)
+	slog.Info("artifact uploaded", "app_id", a.ID, "size", p.File.Size, "metadata", p.File.Metadata.Source)
 }
 func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
 	s.uploadMu.Lock()
@@ -118,7 +119,7 @@ func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
 	token := r.FormValue("upload_token")
 	p, ok := s.pending[token]
 	if !ok || p.AppID != a.ID || p.Owner != sess.CSRF || time.Now().After(p.Expires) {
-		s.problem(w, r, 400, "上传已过期，请重新选择 APK")
+		s.problem(w, r, 400, "上传已过期，请重新选择更新包")
 		return
 	}
 	if r.FormValue("action") == "cancel" {
@@ -136,11 +137,11 @@ func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if pkg != a.PackageName || p.File.Metadata.PackageName != "" && p.File.Metadata.PackageName != pkg {
-		s.problem(w, r, 400, "APK 包名与应用不一致")
+		s.problem(w, r, 400, "更新包包名与应用不一致")
 		return
 	}
 	if p.File.Metadata.VersionCode > 0 && p.File.Metadata.VersionCode != code || p.File.Metadata.VersionName != "" && p.File.Metadata.VersionName != name {
-		s.problem(w, r, 400, "版本信息必须与 APK 一致")
+		s.problem(w, r, 400, "版本信息必须与更新包一致")
 		return
 	}
 	if _, e := s.db.ReleaseByCode(r.Context(), a.ID, code); e == nil {
@@ -152,7 +153,7 @@ func (s *Server) createRelease(w http.ResponseWriter, r *http.Request) {
 	}
 	path, err := s.storage.Commit(p.File, a.ID, code)
 	if err != nil {
-		slog.Error("APK commit", "error", err)
+		slog.Error("artifact commit", "error", err)
 		s.problem(w, r, 409, "版本文件已存在或无法保存")
 		return
 	}
@@ -233,13 +234,13 @@ func (s *Server) deleteRelease(w http.ResponseWriter, r *http.Request) {
 		s.problem(w, r, 400, "请输入版本号确认删除")
 		return
 	}
-	// Remove the row first: public APIs stop offering the APK immediately.
+	// Remove the row first: public APIs stop offering the artifact immediately.
 	if err = s.db.DeleteRelease(r.Context(), rel.ID); err != nil {
 		s.dbError(w, r, err)
 		return
 	}
 	if err = s.storage.Delete(rel.AppID, rel.VersionCode); err != nil {
-		slog.Error("APK deletion", "release_id", rel.ID, "error", err)
+		slog.Error("artifact deletion", "release_id", rel.ID, "error", err)
 		s.problem(w, r, 500, "版本记录已删除，但文件清理失败；请检查存储目录")
 		return
 	}
